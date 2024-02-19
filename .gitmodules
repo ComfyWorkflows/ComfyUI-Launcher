@@ -1,0 +1,3 @@
+[submodule "server/default_custom_nodes/ComfyUI-ComfyWorkflows"]
+	path = server/default_custom_nodes/ComfyUI-ComfyWorkflows
+	url = https://github.com/thecooltechguy/ComfyUI-ComfyWorkflows
