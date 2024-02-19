@@ -1,0 +1,4 @@
+*.pyc
+venv/
+models/
+projects/
