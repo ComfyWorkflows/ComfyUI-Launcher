@@ -182,7 +182,7 @@ function ImportWorkflowUI() {
             <div className="flex flex-col p-10">
                 <div className='flex flex-col'>
                     <h1 className="text-3xl font-semibold">Import workflow</h1>
-                    <p className="mt-5 font-medium text-gray-700">Drag & drop a <b>ComfyUI workflow json file</b> or <b>ComfyUI Launcher json file</b> to run it with zero setup.</p>
+                    <p className="mt-5 font-medium text-gray-700">Drag & drop a <b>ComfyUI workflow json file</b> or <b>ComfyUI Launcher json file</b> to run it with <b>ZERO setup</b>.</p>
                 </div>
 
                 <div className="flex flex-col mt-10">
