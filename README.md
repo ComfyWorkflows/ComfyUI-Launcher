@@ -6,10 +6,10 @@ Need help? Join our Discord!
 [![](https://dcbadge.vercel.app/api/server/kXS43yTRNA)](https://discord.gg/kXS43yTRNA)
 
 <p float="middle">
-  <img src="./assets/launcher_projects.png" width="100%" />
-  <img src="./assets/launcher_new_workflow.png" width="100%" />
-  <img src="./assets/launcher_import_workflow.png" width="100%" />
-  <img src="./assets/launcher_comfyui.png" width="100%" />
+  <img src="./assets/launcher_projects.png" width="50%" />
+  <img src="./assets/launcher_new_workflow.png" width="50%" />
+  <img src="./assets/launcher_import_workflow.png" width="50%" />
+  <img src="./assets/launcher_comfyui.png" width="50%" />
 </p>
 
 ## Features
