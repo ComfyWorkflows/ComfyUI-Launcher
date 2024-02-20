@@ -9,6 +9,11 @@ The easiest way to run & use ComfyUI
 - Each workflow runs in its own isolated environment
 - Prevents your workflows from suddenly breaking when updating custom nodes, ComfyUI, etc.
 
+## Coming soon
+- Run workflows w/ Cloud GPUs
+- Backup your projects to the cloud
+- Run ComfyUI Launcher in the cloud
+
 ## Requirements
 - Docker
 - Python 3

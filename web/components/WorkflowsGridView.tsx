@@ -28,7 +28,7 @@ function WorkflowsGridView() {
     
     return (
         <div>
-            <Masonry itemKey={(item, index) => item === undefined ? index : item.id} columnGutter={20} columnWidth={350} items={getProjectsQuery.data} render={(props) => <ProjectCard item={props.data} />} />
+            <Masonry key={getProjectsQuery.data.map(p => p.id).join(",")} itemKey={(item, index) => item === undefined ? index : item.id} columnGutter={20} columnWidth={350} items={getProjectsQuery.data} render={(props) => <ProjectCard item={props.data} />} />
         </div>
     )
 }
