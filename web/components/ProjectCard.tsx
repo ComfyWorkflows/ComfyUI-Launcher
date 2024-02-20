@@ -95,7 +95,7 @@ function ProjectCard({ item }: ProjectCardProps) {
                         {projectOperation === "launch" && <DialogTitle>Launching project...</DialogTitle>}
                         {projectOperation === "stop" && <DialogTitle>Stopping project...</DialogTitle>}
                         {projectOperation === "delete" && <DialogTitle>Deleting project...</DialogTitle>}
-                        <DialogDescription>This could take a few moments.</DialogDescription>
+                        <DialogDescription className='mt-5 text-sm text-neutral-700 font-medium'>This could take a few moments.</DialogDescription>
                     </DialogHeader>
                     <div className='flex justify-center items-center'>
                         <Loader2Icon className="animate-spin h-10 w-10 text-gray-700" />
