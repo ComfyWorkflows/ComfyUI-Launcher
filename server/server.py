@@ -6,7 +6,7 @@ import time
 from flask import Flask, jsonify, request
 from showinfm import show_in_file_manager
 from settings import PROJECTS_DIR, MODELS_DIR, TEMPLATES_DIR
-import os, psutil
+import os, psutil, sys
 from utils import create_comfyui_project, find_free_port, get_launcher_json_for_workflow_json, get_launcher_state, is_launcher_json_format, is_port_in_use, run_command_in_project_comfyui_venv, set_launcher_state_data, slugify
 
 app = Flask(__name__)
@@ -172,8 +172,11 @@ def delete_project(id):
 if __name__ == "__main__":
     # start a process in the bg that runs the following command
     # docker run --rm -p 3000:3000 --add-host=host.docker.internal:host-gateway --name comfyui_launcher_web -it thecooltechguy/comfyui_launcher_web
-    print("Starting web UI...")
-    os.system("docker rm -f comfyui_launcher_web") # remove any existing container
-    proc = subprocess.Popen(["docker", "run", "--rm", "-p", "3000:3000", "--add-host=host.docker.internal:host-gateway", "--name", "comfyui_launcher_web", "-it", "thecooltechguy/comfyui_launcher_web"])
+    if "--only-server" not in sys.argv:
+        print("Starting web UI...")
+        os.system("docker rm -f comfyui_launcher_web") # remove any existing container
+        proc = subprocess.Popen(["docker", "run", "--rm", "-p", "3000:3000", "--add-host=host.docker.internal:host-gateway", "--name", "comfyui_launcher_web", "-it", "thecooltechguy/comfyui_launcher_web"])
     print("Starting server...")
+    os.makedirs(PROJECTS_DIR, exist_ok=True)
+    os.makedirs(MODELS_DIR, exist_ok=True)
     app.run(host='0.0.0.0', debug=False, port=4000)
