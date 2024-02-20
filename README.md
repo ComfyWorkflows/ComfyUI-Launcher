@@ -48,3 +48,6 @@ cd web/ && npm run dev
 ```
 
 Open http://localhost:3000
+
+## Credits
+- ComfyUI Manager (https://github.com/ltdrdata/ComfyUI-Manager/)

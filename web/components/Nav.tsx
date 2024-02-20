@@ -33,13 +33,13 @@ export function Nav() {
                         Models
                     </NavigationMenuLink>
                 </NavigationMenuItem>
-                <NavigationMenuItem>
+                {/* <NavigationMenuItem>
                     <Link href="/settings" legacyBehavior passHref>
                         <NavigationMenuLink className={navigationMenuTriggerStyle()}>
                             Settings
                         </NavigationMenuLink>
                     </Link>
-                </NavigationMenuItem>
+                </NavigationMenuItem> */}
             </NavigationMenuList>
         </NavigationMenu>
     )
