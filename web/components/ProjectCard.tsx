@@ -108,7 +108,7 @@ function ProjectCard({ item }: ProjectCardProps) {
                         <AlertDialogTitle>Are you sure?</AlertDialogTitle>
                         <AlertDialogDescription>
                             This action cannot be undone. This will permanently delete your
-                            project's data.
+                            project&apos;s data.
 
                             Your models will NOT be deleted.
                         </AlertDialogDescription>

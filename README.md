@@ -24,30 +24,22 @@ git clone https://github.com/ComfyWorkflows/comfyui-launcher
 python3 -m venv venv
 source venv/bin/activate
 pip install -r requirements.txt
-cd web/ && npm install
 ```
 
-## Updating
+## Starting ComfyUI Launcher
+```
+cd server/ && python server.py
+```
+Open http://localhost:3000
+Ctrl+C to stop the server.
 
+## Updating ComfyUI Launcher
 ```
 git pull
 source venv/bin/activate
 pip install -r requirements.txt
-cd web/ && npm install
+docker pull thecooltechguy/comfyui_launcher_web
 ```
-
-## Usage
-### Start server
-```
-cd server/ && python server.py
-```
-
-### Start web UI
-```
-cd web/ && npm run dev
-```
-
-Open http://localhost:3000
 
 ## Credits
 - ComfyUI Manager (https://github.com/ltdrdata/ComfyUI-Manager/)
