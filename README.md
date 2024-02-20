@@ -31,7 +31,6 @@ pip install -r requirements.txt
 cd server/ && python server.py
 ```
 Open http://localhost:3000
-Ctrl+C to stop the server.
 
 ## Updating ComfyUI Launcher
 ```
