@@ -18,6 +18,15 @@ pip install -r requirements.txt
 cd web/ && npm install
 ```
 
+## Updating
+
+```
+git pull
+source venv/bin/activate
+pip install -r requirements.txt
+cd web/ && npm install
+```
+
 ## Usage
 ### Start server
 ```
