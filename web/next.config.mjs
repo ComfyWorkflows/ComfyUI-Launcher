@@ -1,5 +1,9 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
+    output: 'standalone',
+    experimental: {
+        proxyTimeout: 1000 * 60 * 10, // 10 minutes
+    },
     async rewrites() {
         // rewrite all /api requests to localhost:4000
         return [

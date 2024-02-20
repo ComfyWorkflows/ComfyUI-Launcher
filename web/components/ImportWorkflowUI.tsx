@@ -189,7 +189,7 @@ function ImportWorkflowUI() {
                     {/* @ts-ignore */}
                     <div className='cursor-pointer' {...getRootProps({ style })}>
                         <input {...getInputProps()} />
-                        <p>Drag 'n' drop some files here, or click to select files</p>
+                        <p>Drag & drop your json file here</p>
                     </div>
                     <aside className='mt-4'>
                         <ul>

@@ -1,6 +1,7 @@
 import json
 import shutil
 import signal
+import subprocess
 import time
 from flask import Flask, jsonify, request
 from showinfm import show_in_file_manager
@@ -169,4 +170,9 @@ def delete_project(id):
     return jsonify({"success": True})
 
 if __name__ == "__main__":
-    app.run(host='0.0.0.0', debug=True, port=4000)
+    # start a process in the bg that runs the following command
+    # docker run --rm -p 3000:3000 --add-host=host.docker.internal:host-gateway --name comfyui_launcher_web -it thecooltechguy/comfyui_launcher_web
+    print("Starting web UI...")
+    proc = subprocess.Popen(["docker", "run", "--rm", "-p", "3000:3000", "--add-host=host.docker.internal:host-gateway", "--name", "comfyui_launcher_web", "-it", "thecooltechguy/comfyui_launcher_web"])
+    print("Starting server...")
+    app.run(host='0.0.0.0', debug=False, port=4000)
