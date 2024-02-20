@@ -26,11 +26,12 @@ export function Nav() {
                     </Link>
                 </NavigationMenuItem>
                 <NavigationMenuItem>
-                    <Link href="/models" legacyBehavior passHref>
-                        <NavigationMenuLink className={navigationMenuTriggerStyle()}>
-                            Models
-                        </NavigationMenuLink>
-                    </Link>
+                    <NavigationMenuLink onClick={async (e) => {
+                        e.preventDefault();
+                        await fetch("/api/open_models_folder");
+                    }} className={`${navigationMenuTriggerStyle()} cursor-pointer`}>
+                        Models
+                    </NavigationMenuLink>
                 </NavigationMenuItem>
                 <NavigationMenuItem>
                     <Link href="/settings" legacyBehavior passHref>
