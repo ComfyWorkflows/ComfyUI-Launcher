@@ -1,5 +1,5 @@
 # ComfyUI Launcher (BETA)
-The easiest way to run & use ComfyUI
+The easiest way to use ComfyUI
 
 Need help? Join our Discord!
 
