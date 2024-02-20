@@ -1,6 +1,9 @@
 # ComfyUI Launcher (BETA)
 The easiest way to run & use ComfyUI
 
+Need help? Join our Discord
+[![](https://dcbadge.vercel.app/api/server/kXS43yTRNA)](https://discord.gg/kXS43yTRNA)
+
 ## Features
 - Run any workflow with **ZERO setup**
 - Automatically installs custom nodes, downloads model files, etc.
