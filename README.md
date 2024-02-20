@@ -1,4 +1,4 @@
-# ComfyUI Launcher
+# ComfyUI Launcher (BETA)
 The easiest way to run & use ComfyUI
 
 ## Features
