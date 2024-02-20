@@ -2,7 +2,7 @@
 The easiest way to run & use ComfyUI
 
 ## Features
-- Import & run any workflow with **ZERO setup**
+- Run any workflow with **ZERO setup**
 - Automatically installs custom nodes, downloads model files, etc.
 - Workflows exported by this tool can be run by anyone using this tool with **ZERO setup**
 - Create & manage multiple ComfyUI workflows
