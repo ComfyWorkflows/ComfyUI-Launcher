@@ -32,6 +32,7 @@ Need help? Join our Discord!
 ## Installation
 ```
 git clone https://github.com/ComfyWorkflows/comfyui-launcher
+cd ComfyUI-Launcher/
 python3 -m venv venv
 source venv/bin/activate
 pip install -r requirements.txt
