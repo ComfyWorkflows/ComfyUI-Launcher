@@ -173,6 +173,7 @@ if __name__ == "__main__":
     # start a process in the bg that runs the following command
     # docker run --rm -p 3000:3000 --add-host=host.docker.internal:host-gateway --name comfyui_launcher_web -it thecooltechguy/comfyui_launcher_web
     print("Starting web UI...")
+    os.system("docker rm -f comfyui_launcher_web") # remove any existing container
     proc = subprocess.Popen(["docker", "run", "--rm", "-p", "3000:3000", "--add-host=host.docker.internal:host-gateway", "--name", "comfyui_launcher_web", "-it", "thecooltechguy/comfyui_launcher_web"])
     print("Starting server...")
     app.run(host='0.0.0.0', debug=False, port=4000)
