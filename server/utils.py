@@ -39,7 +39,7 @@ def run_command_in_project_venv(project_folder_path, command):
     ), f"Virtualenv does not exist in project folder: {project_folder_path}"
     assert (
         os.system(
-            f"source {os.path.join(project_folder_path, 'venv', 'bin', 'activate')} && {command}"
+            f". {os.path.join(project_folder_path, 'venv', 'bin', 'activate')} && {command}"
         )
         == 0
     )
@@ -53,7 +53,7 @@ def run_command_in_project_comfyui_venv(project_folder_path, command, in_bg=Fals
     if not in_bg:
         assert (
             os.system(
-                f"source {os.path.join(project_folder_path, 'venv', 'bin', 'activate')} && cd {os.path.join(project_folder_path, 'comfyui')} && {command}"
+                f". {os.path.join(project_folder_path, 'venv', 'bin', 'activate')} && cd {os.path.join(project_folder_path, 'comfyui')} && {command}"
             )
             == 0
         )
@@ -61,7 +61,7 @@ def run_command_in_project_comfyui_venv(project_folder_path, command, in_bg=Fals
         # start a process in the background and return the process id
         import subprocess
         process = subprocess.Popen(
-            f"source {os.path.join(project_folder_path, 'venv', 'bin', 'activate')} && cd {os.path.join(project_folder_path, 'comfyui')} && {command}",
+            f". {os.path.join(project_folder_path, 'venv', 'bin', 'activate')} && cd {os.path.join(project_folder_path, 'comfyui')} && {command}",
             shell=True,
         )
         return process.pid
