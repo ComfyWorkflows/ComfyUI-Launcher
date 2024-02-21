@@ -13,3 +13,4 @@ requests==2.31.0
 show-in-file-manager==1.1.4
 urllib3==2.2.0
 Werkzeug==3.0.1
+tqdm

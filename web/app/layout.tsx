@@ -5,6 +5,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { Inter as FontSans } from "next/font/google"
 import { cn } from "@/lib/utils"
 import Providers from "./providers";
+import { Toaster } from "@/components/ui/toaster";
 
 export const fontSans = FontSans({
   subsets: ["latin"],
@@ -30,7 +31,9 @@ export default function RootLayout({
             "min-h-screen bg-background font-sans antialiased",
             fontSans.variable
           )}
-          >{children}</body>
+          >{children}
+            <Toaster />
+          </body>
         </html>
       </StoreProvider>
     </Providers>
