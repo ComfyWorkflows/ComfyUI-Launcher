@@ -6,6 +6,7 @@ import requests
 import hashlib
 import unicodedata
 import re
+from tqdm import tqdm
 
 def slugify(value, allow_unicode=False):
     """
@@ -32,6 +33,63 @@ CUSTOM_NODES_TO_IGNORE_FROM_SNAPSHOTS = ["ComfyUI-ComfyWorkflows", "ComfyUI-Mana
 
 CW_ENDPOINT = os.environ.get("CW_ENDPOINT", "https://comfyworkflows.com")
 
+
+import os
+from typing import List, Dict, Optional, Union
+import json
+
+class ModelFileWithNodeInfo:
+    def __init__(self, filename: str, original_filepath: str, normalized_filepath: str):
+        self.filename = filename
+        self.original_filepath = original_filepath
+        self.normalized_filepath = normalized_filepath
+
+def convert_to_unix_path(path: str) -> str:
+    return path.replace("\\\\", "/").replace("\\", "/")
+
+def convert_to_windows_path(path: str) -> str:
+    return path.replace("/", "\\")
+
+def extract_model_file_names_with_node_info(json_data: Union[Dict, List], is_windows: bool = False) -> List[ModelFileWithNodeInfo]:
+    file_names = []
+    model_filename_extensions = {'.safetensors', '.ckpt', '.pt', '.pth', '.bin'}
+
+    def recursive_search(data: Union[Dict, List, str], in_nodes: bool, node_type: Optional[str]):
+        if isinstance(data, dict):
+            for key, value in data.items():
+                type_ = value['type'] if isinstance(value, dict) else None
+                recursive_search(value, key == 'nodes' if not in_nodes else in_nodes, type_ if in_nodes and not node_type else node_type)
+        elif isinstance(data, list):
+            for item in data:
+                type_ = item['type'] if isinstance(item, dict) else None
+                recursive_search(item, in_nodes, type_ if in_nodes and not node_type else node_type)
+        elif isinstance(data, str) and '.' in data:
+            original_filepath = data
+            normalized_filepath = convert_to_windows_path(original_filepath) if is_windows else convert_to_unix_path(original_filepath)
+            filename = os.path.basename(data)
+
+            if '.' + original_filepath.split('.')[-1] in model_filename_extensions:
+                file_names.append(ModelFileWithNodeInfo(filename, original_filepath, normalized_filepath))
+
+    recursive_search(json_data, False, None)
+    return file_names
+
+def get_ckpt_names_with_node_info(workflow_json: Union[Dict, List], is_windows: bool) -> List[ModelFileWithNodeInfo]:
+    ckpt_names = []
+    if isinstance(workflow_json, dict):
+        ckpt_names = extract_model_file_names_with_node_info(workflow_json, is_windows)
+    elif isinstance(workflow_json, list):
+        for item in workflow_json:
+            ckpt_names.extend(get_ckpt_names_with_node_info(item, is_windows))
+    return ckpt_names
+
+def normalize_model_filepaths_in_workflow_json(workflow_json: dict) -> dict:
+    is_windows = os.name == "nt"
+    ckpt_names = get_ckpt_names_with_node_info(workflow_json, is_windows)
+    for ckpt_name in ckpt_names:
+        workflow_json = json.dumps(workflow_json).replace(ckpt_name.original_filepath.replace("\\", "\\\\"), ckpt_name.normalized_filepath.replace("\\", "\\\\"))
+        workflow_json = json.loads(workflow_json)
+    return workflow_json
 
 def run_command_in_project_venv(project_folder_path, command):
     assert os.path.exists(
@@ -194,8 +252,12 @@ def setup_files_from_launcher_json(project_folder_path, launcher_json):
                     with requests.get(
                         download_url, allow_redirects=True, stream=True
                     ) as response:
+                        
+                        total_size = int(response.headers.get("content-length", 0))
+                        pb = tqdm(total=total_size, unit="B", unit_scale=True)
                         with open(dest_path, "wb") as f:
                             for chunk in response.iter_content(chunk_size=10 * 1024):
+                                pb.update(len(chunk))
                                 if chunk:
                                     f.write(chunk)
 
@@ -222,6 +284,8 @@ def setup_files_from_launcher_json(project_folder_path, launcher_json):
         if not downloaded_file:
             print(f"WARNING: Failed to download file: {dest_relative_path}")
             missing_download_files.add(dest_relative_path)
+        else:
+            print(f"Downloaded {dest_relative_path}")
         # assert downloaded_file, f"Failed to download file: {dest_relative_path}"
     return missing_download_files
 
@@ -309,7 +373,8 @@ def create_comfyui_project(
             os.system(
                 f"cd {os.path.join(project_folder_path, 'comfyui')} && git checkout {comfyui_commit_hash}"
             )
-
+        launcher_json['workflow_json'] = normalize_model_filepaths_in_workflow_json(launcher_json['workflow_json'])
+    
     # move the comfyui/web/index.html file to comfyui/web/comfyui_index.html
     os.rename(
         os.path.join(project_folder_path, "comfyui", "web", "index.html"),
