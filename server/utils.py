@@ -274,7 +274,7 @@ def setup_files_from_launcher_json(project_folder_path, launcher_json):
                     headers = {}
 
                     if 300 < response.status_code < 400:
-                        url = response.headers.get('Location', url)
+                        url = response.headers.get('Location')
                         assert url, f"Failed to get redirect location for {download_url}"
                         # parse the url to get the host using 
                         hostname = urlparse(url).hostname
@@ -301,6 +301,8 @@ def setup_files_from_launcher_json(project_folder_path, launcher_json):
                     if os.path.exists(dest_path):
                         os.remove(dest_path)
                 except Exception as e:
+                    import traceback
+                    traceback.print_exc()
                     if os.path.exists(dest_path):
                         os.remove(dest_path)
                 num_attempts += 1
