@@ -28,8 +28,8 @@ https://github.com/ComfyWorkflows/ComfyUI-Launcher/assets/33400216/aa17680d-eee5
 - Run ComfyUI Launcher in the cloud
 
 ## Requirements
-- Docker
 - Python 3
+- Docker or Node/npm (19 or later)
 
 ## Installation
 ```
@@ -41,9 +41,25 @@ pip install -r requirements.txt
 ```
 
 ## Starting ComfyUI Launcher
+
+### Option 1: Using Docker
 ```
+source venv/bin/activate
 cd server/ && python server.py
 ```
+Open http://localhost:3000
+
+### Option 2: Using Node/npm
+```
+cd web/ && npm install # Only need to run this once
+npm run dev # must be in the web/ folder
+```
+In a separate terminal, run:
+```
+source venv/bin/activate
+cd server/ && python server.py --only-server
+```
+
 Open http://localhost:3000
 
 ## Updating ComfyUI Launcher
@@ -51,8 +67,9 @@ Open http://localhost:3000
 git pull
 source venv/bin/activate
 pip install -r requirements.txt
-docker pull thecooltechguy/comfyui_launcher_web
+docker pull thecooltechguy/comfyui_launcher_web # if using Docker
 ```
 
 ## Credits
 - ComfyUI Manager (https://github.com/ltdrdata/ComfyUI-Manager/)
+  - Used to auto-detect & install custom nodes
