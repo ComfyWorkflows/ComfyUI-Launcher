@@ -198,12 +198,15 @@ def stop_project(id):
     assert launcher_state["state"] == "running", f"Project with id {id} is not running"
 
     # kill the process with the pid
-    pid = launcher_state["pid"]
-    parent_pid = pid
-    parent = psutil.Process(parent_pid)
-    for child in parent.children(recursive=True):
-        child.terminate()
-    parent.terminate()
+    try:
+        pid = launcher_state["pid"]
+        parent_pid = pid
+        parent = psutil.Process(parent_pid)
+        for child in parent.children(recursive=True):
+            child.terminate()
+        parent.terminate()
+    except:
+        pass
 
     set_launcher_state_data(project_path, {"state": "ready", "port": None, "pid": None})
     return jsonify({"success": True})
