@@ -279,7 +279,7 @@ def setup_files_from_launcher_json(project_folder_path, launcher_json):
                         # parse the url to get the host using 
                         hostname = urlparse(url).hostname
                         if hostname == "civitai.com":
-                            headers["Authorization"] = f"Bearer {config['civitai_api_key']}"
+                            headers["Authorization"] = f"Bearer {config['credentials']['civitai']['apikey']}"
                         download_url = url
                     
                     with requests.get(
