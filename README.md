@@ -1,5 +1,5 @@
 # ComfyUI Launcher (BETA)
-The easiest way to use ComfyUI
+Run any ComfyUI workflow w/ **ZERO setup**.
 
 Need help? Join our Discord!
 
