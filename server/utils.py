@@ -380,6 +380,20 @@ def set_launcher_state_data(project_folder_path, data: dict):
     with open(existing_state_path, "w") as f:
         json.dump(existing_state, f)
 
+def install_pip_reqs(project_folder_path, pip_reqs):
+    if not pip_reqs:
+        return
+    print("Installing pip requirements...")
+    with open(os.path.join(project_folder_path, "requirements.txt"), "w") as f:
+        for req in pip_reqs:
+            if isinstance(req, str):
+                f.write(req + "\n")
+            elif isinstance(req, dict):
+                f.write(f"{req['_key']}=={req['_version']}\n")
+    run_command_in_project_venv(
+        project_folder_path,
+        f"pip install -r {os.path.join(project_folder_path, 'requirements.txt')}",
+    )
 
 def create_comfyui_project(
     project_folder_path, models_folder_path, id, name, launcher_json=None
@@ -463,6 +477,10 @@ def create_comfyui_project(
     install_default_custom_nodes(project_folder_path, launcher_json)
 
     setup_custom_nodes_from_snapshot(project_folder_path, launcher_json)
+
+    # install pip requirements
+    if launcher_json and "pip_requirements" in launcher_json:
+        install_pip_reqs(project_folder_path, launcher_json["pip_requirements"])
 
     # download all necessary files
     set_launcher_state_data(
