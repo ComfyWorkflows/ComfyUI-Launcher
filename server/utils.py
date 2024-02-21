@@ -7,6 +7,7 @@ import hashlib
 import unicodedata
 import re
 from tqdm import tqdm
+from urllib.parse import urlparse
 
 def slugify(value, allow_unicode=False):
     """
@@ -33,6 +34,9 @@ CUSTOM_NODES_TO_IGNORE_FROM_SNAPSHOTS = ["ComfyUI-ComfyWorkflows", "ComfyUI-Mana
 
 CW_ENDPOINT = os.environ.get("CW_ENDPOINT", "https://comfyworkflows.com")
 
+CONFIG_FILEPATH = "./config.json"
+
+DEFAULT_CONFIG = {"credentials": {"civitai": {"apikey": ""}}}
 
 import os
 from typing import List, Dict, Optional, Union
@@ -210,12 +214,27 @@ def compute_sha256_checksum(file_path):
             sha256.update(data)
     return sha256.hexdigest()
 
+def get_config():
+    with open(CONFIG_FILEPATH, "r") as f:
+        return json.load(f)
+    
+def update_config(config_update):
+    config = get_config()
+    config.update(config_update)
+    with open(CONFIG_FILEPATH, "w") as f:
+        json.dump(config, f)
+    return config
+
+def set_config(config):
+    with open(CONFIG_FILEPATH, "w") as f:
+        json.dump(config, f)
 
 def setup_files_from_launcher_json(project_folder_path, launcher_json):
     if not launcher_json:
         return
 
     missing_download_files = set()
+    config = get_config()
 
     # download all necessary files
     for file_infos in launcher_json["files"]:
@@ -249,10 +268,23 @@ def setup_files_from_launcher_json(project_folder_path, launcher_json):
 
             while num_attempts < MAX_DOWNLOAD_ATTEMPTS:
                 try:
+                    response = requests.head(download_url, allow_redirects=False)
+                    response.raise_for_status()
+
+                    headers = {}
+
+                    if 300 < response.status_code < 400:
+                        url = response.headers.get('Location', url)
+                        assert url, f"Failed to get redirect location for {download_url}"
+                        # parse the url to get the host using 
+                        hostname = urlparse(url).hostname
+                        if hostname == "civitai.com":
+                            headers["Authorization"] = f"Bearer {config['civitai_api_key']}"
+                        download_url = url
+                    
                     with requests.get(
-                        download_url, allow_redirects=True, stream=True
+                        download_url, headers=headers, allow_redirects=True, stream=True
                     ) as response:
-                        
                         total_size = int(response.headers.get("content-length", 0))
                         pb = tqdm(total=total_size, unit="B", unit_scale=True)
                         with open(dest_path, "wb") as f:

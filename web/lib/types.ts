@@ -9,6 +9,14 @@ export type WorkflowTemplateItem = {
     credits?: string;
 }
 
+export type Config = {
+    credentials: {
+        civitai: {
+            apikey: string
+        }
+    }
+}
+
 export type ProjectState = {
     state: "install_comfyui" | "install_custom_nodes" | "download_files" | "ready" | "download_comfyui" | "running"
     status_message: string,
