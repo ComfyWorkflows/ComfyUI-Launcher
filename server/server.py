@@ -74,9 +74,7 @@ def get_project(id):
 
 @app.route("/get_config", methods=["GET"])
 def api_get_config():
-    print("Getting config")
     config = get_config()
-    print(config)
     return jsonify(config)
 
 
