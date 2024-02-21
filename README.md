@@ -12,6 +12,8 @@ Need help? Join our Discord!
   <img src="./assets/launcher_comfyui.png" width="45%" />
 </p>
 
+https://github.com/ComfyWorkflows/ComfyUI-Launcher/assets/33400216/aa17680d-eee5-4e6d-abc4-9f7551f9a4ad
+
 ## Features
 - Run any workflow with **ZERO setup**
 - Automatically installs custom nodes, downloads model files, etc.
