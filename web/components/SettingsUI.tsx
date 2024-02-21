@@ -66,7 +66,7 @@ function SettingsUI({ initialConfig }: { initialConfig: Config }) {
                     />
                     <p className="text-xs font-medium text-gray-600">
                         You can get your CivitAI API key from your <a href="https://civitai.com/user/account" target="_blank" rel="noreferrer">CivitAI account settings page</a>.
-                        <br/>Scroll to the bottom of the page to the section titled "API Keys", and create one.
+                        <br/>Scroll to the bottom of the page to the section titled &quot;API Keys&quot;, and create one.
                         <br/><br/>
                         This key is saved locally and ONLY used to download missing models directly from CivitAI. It is NEVER sent anywhere else.
                     </p>
