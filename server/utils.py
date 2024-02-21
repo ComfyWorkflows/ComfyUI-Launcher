@@ -57,11 +57,11 @@ def extract_model_file_names_with_node_info(json_data: Union[Dict, List], is_win
     def recursive_search(data: Union[Dict, List, str], in_nodes: bool, node_type: Optional[str]):
         if isinstance(data, dict):
             for key, value in data.items():
-                type_ = value['type'] if isinstance(value, dict) else None
+                type_ = value.get('type') if isinstance(value, dict) else None
                 recursive_search(value, key == 'nodes' if not in_nodes else in_nodes, type_ if in_nodes and not node_type else node_type)
         elif isinstance(data, list):
             for item in data:
-                type_ = item['type'] if isinstance(item, dict) else None
+                type_ = item.get('type') if isinstance(item, dict) else None
                 recursive_search(item, in_nodes, type_ if in_nodes and not node_type else node_type)
         elif isinstance(data, str) and '.' in data:
             original_filepath = data
