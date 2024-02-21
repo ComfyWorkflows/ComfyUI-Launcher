@@ -249,4 +249,4 @@ if __name__ == "__main__":
     os.makedirs(MODELS_DIR, exist_ok=True)
     if not os.path.exists(CONFIG_FILEPATH):
         set_config(DEFAULT_CONFIG)
-    app.run(host="0.0.0.0", debug=True, port=4000)
+    app.run(host="0.0.0.0", debug=False, port=4000)
