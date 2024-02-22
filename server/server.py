@@ -165,9 +165,18 @@ def start_project(id):
     assert port, "No free port found"
     assert not is_port_in_use(port), f"Port {port} is already in use"
 
+    # # start the project
+    # pid = run_command_in_project_comfyui_venv(
+    #     project_path, f"python main.py --port {port}", in_bg=True
+    # )
+    # assert pid, "Failed to start the project"
+
     # start the project
+    command = f"python main.py --port {port}"
+    if os.name == "nt":
+        command = f"start \"\" cmd /c \"{command}\""
     pid = run_command_in_project_comfyui_venv(
-        project_path, f"python main.py --port {port}", in_bg=True
+        project_path, command, in_bg=True
     )
     assert pid, "Failed to start the project"
 
@@ -225,26 +234,55 @@ def delete_project(id):
     return jsonify({"success": True})
 
 
+# if __name__ == "__main__":
+#     # start a process in the bg that runs the following command
+#     # docker run --rm -p 3000:3000 --add-host=host.docker.internal:host-gateway --name comfyui_launcher_web -it thecooltechguy/comfyui_launcher_web
+#     if "--only-server" not in sys.argv:
+#         print("Starting web UI...")
+#         os.system("docker rm -f comfyui_launcher_web")  # remove any existing container
+#         proc = subprocess.Popen(
+#             [
+#                 "docker",
+#                 "run",
+#                 "--rm",
+#                 "-p",
+#                 "3000:3000",
+#                 "--add-host=host.docker.internal:host-gateway",
+#                 "--name",
+#                 "comfyui_launcher_web",
+#                 "-it",
+#                 "thecooltechguy/comfyui_launcher_web",
+#             ]
+#         )
+#     print("Starting server...")
+#     os.makedirs(PROJECTS_DIR, exist_ok=True)
+#     os.makedirs(MODELS_DIR, exist_ok=True)
+#     if not os.path.exists(CONFIG_FILEPATH):
+#         set_config(DEFAULT_CONFIG)
+#     app.run(host="0.0.0.0", debug=False, port=4000)
+
 if __name__ == "__main__":
-    # start a process in the bg that runs the following command
-    # docker run --rm -p 3000:3000 --add-host=host.docker.internal:host-gateway --name comfyui_launcher_web -it thecooltechguy/comfyui_launcher_web
     if "--only-server" not in sys.argv:
         print("Starting web UI...")
-        os.system("docker rm -f comfyui_launcher_web")  # remove any existing container
-        proc = subprocess.Popen(
-            [
-                "docker",
-                "run",
-                "--rm",
-                "-p",
-                "3000:3000",
-                "--add-host=host.docker.internal:host-gateway",
-                "--name",
-                "comfyui_launcher_web",
-                "-it",
-                "thecooltechguy/comfyui_launcher_web",
-            ]
-        )
+        subprocess.run(["docker", "rm", "-f", "comfyui_launcher_web"], stdout=subprocess.PIPE, stderr=subprocess.PIPE)  # remove any existing container
+        docker_command = [
+            "docker",
+            "run",
+            "--rm",
+            "-p",
+            "3000:3000",
+            "--add-host=host.docker.internal:host-gateway",
+            "--name",
+            "comfyui_launcher_web",
+            "-it",
+            "thecooltechguy/comfyui_launcher_web",
+        ]
+        if os.name == "nt":  # Check if running on Windows
+            docker_command = ["cmd", "/c"] + docker_command
+        proc = subprocess.Popen(docker_command, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True)
+        stdout, stderr = proc.communicate()
+        print(stdout.decode())  # Log the stdout
+
     print("Starting server...")
     os.makedirs(PROJECTS_DIR, exist_ok=True)
     os.makedirs(MODELS_DIR, exist_ok=True)
