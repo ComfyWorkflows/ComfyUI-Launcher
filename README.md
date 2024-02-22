@@ -5,6 +5,14 @@ Need help? Join our Discord!
 
 [![](https://dcbadge.vercel.app/api/server/kXS43yTRNA)](https://discord.gg/kXS43yTRNA)
 
+## Features
+- Run any workflow with **ZERO setup**
+- Automatically installs custom nodes, downloads model files, etc.
+- Workflows exported by this tool can be run by anyone using this tool with **ZERO setup**
+- Work on multiple ComfyUI workflows at the same time
+- Each workflow runs in its own isolated environment
+- Prevents your workflows from suddenly breaking when updating custom nodes, ComfyUI, etc.
+
 <p float="middle">
   <img src="./assets/launcher_projects.png" width="45%" />
   <img src="./assets/launcher_new_workflow.png" width="45%" />
@@ -12,20 +20,10 @@ Need help? Join our Discord!
   <img src="./assets/launcher_comfyui.png" width="45%" />
 </p>
 
+## Demo
+
+Running a workflow json file w/ no setup
 https://github.com/ComfyWorkflows/ComfyUI-Launcher/assets/33400216/aa17680d-eee5-4e6d-abc4-9f7551f9a4ad
-
-## Features
-- Run any workflow with **ZERO setup**
-- Automatically installs custom nodes, downloads model files, etc.
-- Workflows exported by this tool can be run by anyone using this tool with **ZERO setup**
-- Create & manage multiple ComfyUI workflows
-- Each workflow runs in its own isolated environment
-- Prevents your workflows from suddenly breaking when updating custom nodes, ComfyUI, etc.
-
-## Coming soon
-- Run workflows w/ Cloud GPUs
-- Backup your projects to the cloud
-- Run ComfyUI Launcher in the cloud
 
 ## Requirements
 - Python 3
@@ -69,6 +67,12 @@ source venv/bin/activate
 pip install -r requirements.txt
 docker pull thecooltechguy/comfyui_launcher_web # if using Docker
 ```
+
+## Coming soon
+- Better way to manage your workflows locally
+- Run workflows w/ Cloud GPUs
+- Backup your projects to the cloud
+- Run ComfyUI Launcher in the cloud
 
 ## Credits
 - ComfyUI Manager (https://github.com/ltdrdata/ComfyUI-Manager/)
