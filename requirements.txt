@@ -11,6 +11,6 @@ packaging==23.2
 psutil==5.9.8
 requests==2.31.0
 show-in-file-manager==1.1.4
+tqdm==4.66.2
 urllib3==2.2.0
 Werkzeug==3.0.1
-tqdm
