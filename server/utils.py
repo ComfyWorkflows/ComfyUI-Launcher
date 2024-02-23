@@ -79,6 +79,16 @@ def extract_model_file_names_with_node_info(json_data: Union[Dict, List], is_win
     recursive_search(json_data, False, None)
     return file_names
 
+def run_command(cmd: List[str], cwd: Optional[str] = None, bg: bool = False) -> None:
+    process = subprocess.Popen(" ".join(cmd), cwd=cwd, shell=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+    for line in iter(process.stdout.readline, b''):
+        print(line.decode(), end='')
+    process.stdout.close()
+    if not bg:
+        assert process.wait() == 0
+    else:
+        return process.pid
+
 def get_ckpt_names_with_node_info(workflow_json: Union[Dict, List], is_windows: bool) -> List[ModelFileWithNodeInfo]:
     ckpt_names = []
     if isinstance(workflow_json, dict):
@@ -96,26 +106,7 @@ def normalize_model_filepaths_in_workflow_json(workflow_json: dict) -> dict:
         workflow_json = json.loads(workflow_json)
     return workflow_json
 
-# def run_command_in_project_venv(project_folder_path, command):
-#     assert os.path.exists(
-#         os.path.join(project_folder_path, "venv")
-#     ), f"Virtualenv does not exist in project folder: {project_folder_path}"
-#     assert (
-#         os.system(
-#             f". {os.path.join(project_folder_path, 'venv', 'bin', 'activate')} && {command}"
-#         )
-#         == 0
-#     )
 
-# def run_command_in_project_venv_1(project_folder_path, command):
-#     venv_activate = os.path.join(project_folder_path, "venv", "Scripts", "activate.bat") if os.name == "nt" else os.path.join(project_folder_path, "venv", "bin", "activate")
-    
-#     assert os.path.exists(venv_activate), f"Virtualenv does not exist in project folder: {project_folder_path}"
-#     assert (
-#         subprocess.call([venv_activate, "&&", command], shell=True) == 0
-#     )
-
-#rewritten definition that is platform-agnostic
 def run_command_in_project_venv(project_folder_path, command):
     if os.name == "nt":  # Check if running on Windows
         venv_activate = os.path.join(project_folder_path, "venv", "Scripts", "activate.bat")
@@ -125,53 +116,12 @@ def run_command_in_project_venv(project_folder_path, command):
     assert os.path.exists(venv_activate), f"Virtualenv does not exist in project folder: {project_folder_path}"
     
     if os.name == "nt":
-        command = f"call {venv_activate} && {command}"
+        command = ["call", venv_activate, "&&", command]
     else:
-        command = f". {venv_activate} && {command}"
+        command = ["source", venv_activate, "&&", command]
     
-    # assert subprocess.call(command, shell=True) == 0
     # Run the command using subprocess and capture stdout
-    process = subprocess.Popen(command, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-    stdout, stderr = process.communicate()
-    
-    # Log the stdout
-    print(stdout.decode())
-    
-    assert process.returncode == 0
-
-
-# def run_command_in_project_comfyui_venv(project_folder_path, command, in_bg=False):
-#     assert os.path.exists(
-#         os.path.join(project_folder_path, "venv")
-#     ), f"Virtualenv does not exist in project folder: {project_folder_path}"
-
-#     if not in_bg:
-#         assert (
-#             os.system(
-#                 f". {os.path.join(project_folder_path, 'venv', 'bin', 'activate')} && cd {os.path.join(project_folder_path, 'comfyui')} && {command}"
-#             )
-#             == 0
-#         )
-#     else:
-#         # start a process in the background and return the process id
-#         import subprocess
-#         process = subprocess.Popen(
-#             f". {os.path.join(project_folder_path, 'venv', 'bin', 'activate')} && cd {os.path.join(project_folder_path, 'comfyui')} && {command}",
-#             shell=True,
-#         )
-#         return process.pid
-
-# def run_command_in_project_comfyui_venv(project_folder_path, command, in_bg=False):
-#     venv_activate = os.path.join(project_folder_path, "venv", "Scripts", "activate.bat") if os.name == "nt" else os.path.join(project_folder_path, "venv", "bin", "activate")
-#     comfyui_dir = os.path.join(project_folder_path, "comfyui")
-    
-#     assert os.path.exists(venv_activate), f"Virtualenv does not exist in project folder: {project_folder_path}"
-
-#     if not in_bg:
-#         subprocess.run([venv_activate, "&&", "cd", comfyui_dir, "&&", command], shell=True, check=True)
-#     else:
-#         process = subprocess.Popen([venv_activate, "&&", "cd", comfyui_dir, "&&", command], shell=True)
-#         return process.pid
+    run_command(command)
 
 def run_command_in_project_comfyui_venv(project_folder_path, command, in_bg=False):
     venv_activate = os.path.join(project_folder_path, "venv", "Scripts", "activate.bat") if os.name == "nt" else os.path.join(project_folder_path, "venv", "bin", "activate")
@@ -180,48 +130,15 @@ def run_command_in_project_comfyui_venv(project_folder_path, command, in_bg=Fals
     assert os.path.exists(venv_activate), f"Virtualenv does not exist in project folder: {project_folder_path}"
 
     if not in_bg:
-        process = subprocess.Popen([venv_activate, "&&", "cd", comfyui_dir, "&&", command], shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-        stdout, stderr = process.communicate()
-        print(stdout.decode())  # Log the stdout
-        assert process.returncode == 0
+        run_command([venv_activate, "&&", "cd", comfyui_dir, "&&", command])
     else:
-        process = subprocess.Popen([venv_activate, "&&", "cd", comfyui_dir, "&&", command], shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-        stdout, stderr = process.communicate()
-        print(stdout.decode())  # Log the stdout
-        return process.pid
+        return run_command([venv_activate, "&&", "cd", comfyui_dir, "&&", command], bg=True)
 
-
-# def install_default_custom_nodes(project_folder_path, launcher_json=None):
-#     # install default custom nodes
-#     # comfyui-manager
-#     # os.system(
-#     #     f"git clone https://github.com/ltdrdata/ComfyUI-Manager {os.path.join(project_folder_path, 'comfyui', 'custom_nodes', 'ComfyUI-Manager')}"
-#     # )
-#     subprocess.run(["git", "clone", f"https://github.com/ltdrdata/ComfyUI-Manager", os.path.join(project_folder_path, 'comfyui', 'custom_nodes', 'ComfyUI-Manager')], check=True, shell=True)
-#     # pip install comfyui-manager
-#     run_command_in_project_venv(
-#         project_folder_path,
-#         f"pip install -r {os.path.join(project_folder_path, 'comfyui', 'custom_nodes', 'ComfyUI-Manager', 'requirements.txt')}",
-#     )
-#     # os.system(f"git clone https://github.com/thecooltechguy/ComfyUI-ComfyWorkflows {os.path.join(project_folder_path, 'comfyui', 'custom_nodes', 'ComfyUI-ComfyWorkflows')}")
-#     subprocess.run(["git", "clone", f"https://github.com/thecooltechguy/ComfyUI-ComfyWorkflows", os.path.join(project_folder_path, 'comfyui', 'custom_nodes', 'ComfyUI-ComfyWorkflows')], check=True, shell=True)
-#     # for development
-#     # os.system(
-#     #     f"cp -r ./default_custom_nodes/ComfyUI-ComfyWorkflows {os.path.join(project_folder_path, 'comfyui', 'custom_nodes', 'ComfyUI-ComfyWorkflows')}"
-#     # )
-#     # pip install comfyui-comfyworkflows
-#     run_command_in_project_venv(
-#         project_folder_path,
-#         f"pip install -r {os.path.join(project_folder_path, 'comfyui', 'custom_nodes', 'ComfyUI-ComfyWorkflows', 'requirements.txt')}",
-#     )
 
 def install_default_custom_nodes(project_folder_path, launcher_json=None):
     # install default custom nodes
     # comfyui-manager
-    process = subprocess.Popen(["git", "clone", f"https://github.com/ltdrdata/ComfyUI-Manager", os.path.join(project_folder_path, 'comfyui', 'custom_nodes', 'ComfyUI-Manager')], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-    stdout, stderr = process.communicate()
-    print(stdout.decode())  # Log the stdout
-    assert process.returncode == 0
+    run_command(["git", "clone", f"https://github.com/ltdrdata/ComfyUI-Manager", os.path.join(project_folder_path, 'comfyui', 'custom_nodes', 'ComfyUI-Manager')])
 
     # pip install comfyui-manager
     run_command_in_project_venv(
@@ -229,10 +146,7 @@ def install_default_custom_nodes(project_folder_path, launcher_json=None):
         f"pip install -r {os.path.join(project_folder_path, 'comfyui', 'custom_nodes', 'ComfyUI-Manager', 'requirements.txt')}",
     )
 
-    process = subprocess.Popen(["git", "clone", f"https://github.com/thecooltechguy/ComfyUI-ComfyWorkflows", os.path.join(project_folder_path, 'comfyui', 'custom_nodes', 'ComfyUI-ComfyWorkflows')], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-    stdout, stderr = process.communicate()
-    print(stdout.decode())  # Log the stdout
-    assert process.returncode == 0
+    run_command(["git", "clone", f"https://github.com/thecooltechguy/ComfyUI-ComfyWorkflows", os.path.join(project_folder_path, 'comfyui', 'custom_nodes', 'ComfyUI-ComfyWorkflows')])
 
     # pip install comfyui-comfyworkflows
     run_command_in_project_venv(
@@ -240,29 +154,13 @@ def install_default_custom_nodes(project_folder_path, launcher_json=None):
         f"pip install -r {os.path.join(project_folder_path, 'comfyui', 'custom_nodes', 'ComfyUI-ComfyWorkflows', 'requirements.txt')}",
     )
 
-
-# def setup_initial_models_folder(models_folder_path):
-#     assert not os.path.exists(
-#         models_folder_path
-#     ), f"Models folder already exists: {models_folder_path}"
-#     # os.makedirs(models_folder_path)
-
-#     # clone just the models/ folder from the comfyui repo
-#     tmp_dir = os.path.join(os.path.dirname(models_folder_path), "tmp_comfyui")
-#     os.system(f"git clone {COMFYUI_REPO_URL} {tmp_dir}")
-#     shutil.move(os.path.join(tmp_dir, "models"), models_folder_path)
-#     shutil.rmtree(tmp_dir)
-
 def setup_initial_models_folder(models_folder_path):
     assert not os.path.exists(
         models_folder_path
     ), f"Models folder already exists: {models_folder_path}"
     
     tmp_dir = os.path.join(os.path.dirname(models_folder_path), "tmp_comfyui")
-    process = subprocess.Popen(["git", "clone", COMFYUI_REPO_URL, tmp_dir], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-    stdout, stderr = process.communicate()
-    print(stdout.decode())  # Log the stdout
-    assert process.returncode == 0
+    run_command(["git", "clone", COMFYUI_REPO_URL, tmp_dir])
 
     shutil.move(os.path.join(tmp_dir, "models"), models_folder_path)
     shutil.rmtree(tmp_dir)
@@ -272,43 +170,6 @@ def is_launcher_json_format(import_json):
     if "format" in import_json and import_json["format"] == "comfyui_launcher":
         return True
     return False
-
-# def setup_custom_nodes_from_snapshot(project_folder_path, launcher_json):
-#     if not launcher_json:
-#         return
-#     for custom_node_repo_url, custom_node_repo_info in launcher_json["snapshot_json"][
-#         "git_custom_nodes"
-#     ].items():
-#         if any(
-#             [
-#                 custom_node_to_ignore in custom_node_repo_url
-#                 for custom_node_to_ignore in CUSTOM_NODES_TO_IGNORE_FROM_SNAPSHOTS
-#             ]
-#         ):
-#             continue
-
-#         custom_node_hash = custom_node_repo_info["hash"]
-#         custom_node_disabled = custom_node_repo_info["disabled"]
-#         if custom_node_disabled:
-#             continue
-#         custom_node_name = custom_node_repo_url.split("/")[-1].replace(".git", "")
-#         custom_node_path = os.path.join(
-#             project_folder_path, "comfyui", "custom_nodes", custom_node_name
-#         )
-#         # Clone the custom node repository
-#         # os.system(f"git clone {custom_node_repo_url} {custom_node_path}")
-#         subprocess.run(["git", "clone", custom_node_repo_url, custom_node_path], check=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True)
-
-#         if custom_node_hash:
-#             # Checkout the specific hash
-#             # os.system(f"cd {custom_node_path} && git checkout {custom_node_hash}")
-#             subprocess.run(["git", "checkout", custom_node_hash], cwd=custom_node_path, check=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True)
-#         pip_requirements_path = os.path.join(custom_node_path, "requirements.txt")
-#         if os.path.exists(pip_requirements_path):
-#             run_command_in_project_venv(
-#                 project_folder_path,
-#                 f"pip install -r {os.path.join(custom_node_path, 'requirements.txt')}",
-#             )
 
 def setup_custom_nodes_from_snapshot(project_folder_path, launcher_json):
     if not launcher_json:
@@ -334,17 +195,11 @@ def setup_custom_nodes_from_snapshot(project_folder_path, launcher_json):
         )
         
         # Clone the custom node repository
-        process = subprocess.Popen(["git", "clone", custom_node_repo_url, custom_node_path], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-        stdout, stderr = process.communicate()
-        print(stdout.decode())  # Log the stdout
-        assert process.returncode == 0
+        run_command(["git", "clone", custom_node_repo_url, custom_node_path])
 
         if custom_node_hash:
             # Checkout the specific hash
-            process = subprocess.Popen(["git", "checkout", custom_node_hash], cwd=custom_node_path, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-            stdout, stderr = process.communicate()
-            print(stdout.decode())  # Log the stdout
-            assert process.returncode == 0
+            run_command(["git", "checkout", custom_node_hash], cwd=custom_node_path)
 
         pip_requirements_path = os.path.join(custom_node_path, "requirements.txt")
         if os.path.exists(pip_requirements_path):
@@ -437,13 +292,13 @@ def setup_files_from_launcher_json(project_folder_path, launcher_json):
                         download_url, headers=headers, allow_redirects=True, stream=True
                     ) as response:
                         total_size = int(response.headers.get("content-length", 0))
-                        pb = tqdm(total=total_size, unit="B", unit_scale=True)
-                        with open(dest_path, "wb") as f:
-                            for chunk in response.iter_content(chunk_size=10 * 1024):
-                                pb.update(len(chunk))
-                                if chunk:
-                                    f.write(chunk)
-
+                        with tqdm(total=total_size, unit="B", unit_scale=True) as pb:
+                            with open(dest_path, "wb") as f:
+                                for chunk in response.iter_content(chunk_size=10 * 1024):
+                                    pb.update(len(chunk))
+                                    if chunk:
+                                        f.write(chunk)
+                    
                     if compute_sha256_checksum(dest_path) == sha256_checksum:
                         download_successful = True
                         if dest_relative_path in missing_download_files:
@@ -561,56 +416,18 @@ def create_comfyui_project(
         project_folder_path,
         {"id":id,"name":name, "status_message": "Downloading ComfyUI...", "state": "download_comfyui"},
     )
-
-    # # git clone comfyui into project folder/comfyui
-    # os.system(
-    #     f"git clone {COMFYUI_REPO_URL} {os.path.join(project_folder_path, 'comfyui')}"
-    # )
-    # if launcher_json:
-    #     comfyui_commit_hash = launcher_json["snapshot_json"]["comfyui"]
-    #     if comfyui_commit_hash:
-    #         os.system(
-    #             f"cd {os.path.join(project_folder_path, 'comfyui')} && git checkout {comfyui_commit_hash}"
-    #         )
-    #     launcher_json['workflow_json'] = normalize_model_filepaths_in_workflow_json(launcher_json['workflow_json'])
-
-    # # git clone comfyui into project folder/comfyui
-    # subprocess.run(
-    #     ["git", "clone", COMFYUI_REPO_URL, os.path.join(project_folder_path, 'comfyui')],
-    #     check=True
-    # )
-    # if launcher_json:
-    #     comfyui_commit_hash = launcher_json["snapshot_json"]["comfyui"]
-    #     if comfyui_commit_hash:
-    #         subprocess.run(
-    #             ["git", "checkout", comfyui_commit_hash],
-    #             cwd=os.path.join(project_folder_path, 'comfyui'),
-    #             check=True
-    #         )
-    #     launcher_json['workflow_json'] = normalize_model_filepaths_in_workflow_json(launcher_json['workflow_json'])
-
     # Modify the subprocess.run calls to capture and log the stdout
-    process = subprocess.Popen(
+    run_command(
         ["git", "clone", COMFYUI_REPO_URL, os.path.join(project_folder_path, 'comfyui')],
-        stdout=subprocess.PIPE,
-        stderr=subprocess.PIPE
     )
-    stdout, stderr = process.communicate()
-    print(stdout.decode())  # Log the stdout
-    assert process.returncode == 0
 
     if launcher_json:
         comfyui_commit_hash = launcher_json["snapshot_json"]["comfyui"]
         if comfyui_commit_hash:
-            process = subprocess.Popen(
+            run_command(
                 ["git", "checkout", comfyui_commit_hash],
                 cwd=os.path.join(project_folder_path, 'comfyui'),
-                stdout=subprocess.PIPE,
-                stderr=subprocess.PIPE
             )
-            stdout, stderr = process.communicate()
-            print(stdout.decode())  # Log the stdout
-            assert process.returncode == 0
         launcher_json['workflow_json'] = normalize_model_filepaths_in_workflow_json(launcher_json['workflow_json'])
 
     
@@ -637,11 +454,6 @@ def create_comfyui_project(
 
     # create a folder in project folder/comfyui/models that is a symlink to the models folder
     create_symlink(models_folder_path, os.path.join(project_folder_path, "comfyui", "models"))
-    # os.symlink(
-    #     models_folder_path,
-    #     os.path.join(project_folder_path, "comfyui", "models"),
-    #     target_is_directory=True,
-    # )
 
     set_launcher_state_data(
         project_folder_path,
@@ -650,7 +462,6 @@ def create_comfyui_project(
 
     # create a new virtualenv in project folder/venv
     create_virtualenv(os.path.join(project_folder_path, 'venv'))
-    # os.system(f"python -m venv {os.path.join(project_folder_path, 'venv')}")
 
     # activate the virtualenv + install comfyui requirements
     run_command_in_project_venv(
@@ -701,36 +512,14 @@ def find_free_port():
         s.bind(('', 0))            # Bind to a free port provided by the host.
         return s.getsockname()[1]  # Return the port number assigned.
 
-# def create_symlink(source, target):
-#     if os.name == 'nt':  # Check if running on Windows
-#         import subprocess
-#         subprocess.run(['mklink', '/D', target, source], shell=True, check=True)
-#     else:
-#         os.symlink(source, target, target_is_directory=True)
-
-# def create_virtualenv(venv_path):
-#     if os.name == 'nt':  # Check if running on Windows
-#         os.system(f"virtualenv {venv_path}")
-#     else:
-#         os.system(f"python -m venv {venv_path}")
-
 def create_symlink(source, target):
     if os.name == 'nt':  # Check if running on Windows
-        process = subprocess.Popen(['mklink', '/D', target, source], stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True)
-        stdout, stderr = process.communicate()
-        print(stdout.decode())  # Log the stdout
-        assert process.returncode == 0
+        run_command(['mklink', '/D', target, source])
     else:
         os.symlink(source, target, target_is_directory=True)
 
 def create_virtualenv(venv_path):
     if os.name == 'nt':  # Check if running on Windows
-        process = subprocess.Popen(['virtualenv', venv_path], stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True)
-        stdout, stderr = process.communicate()
-        print(stdout.decode())  # Log the stdout
-        assert process.returncode == 0
+        run_command(['virtualenv', venv_path])
     else:
-        process = subprocess.Popen(['python', '-m', 'venv', venv_path], stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True)
-        stdout, stderr = process.communicate()
-        print(stdout.decode())  # Log the stdout
-        assert process.returncode == 0
+        run_command(['python', '-m', 'venv', venv_path])
