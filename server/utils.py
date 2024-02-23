@@ -7,6 +7,7 @@ import hashlib
 import unicodedata
 import re
 import subprocess
+import threading
 from tqdm import tqdm
 from urllib.parse import urlparse
 
@@ -79,15 +80,22 @@ def extract_model_file_names_with_node_info(json_data: Union[Dict, List], is_win
     recursive_search(json_data, False, None)
     return file_names
 
-def run_command(cmd: List[str], cwd: Optional[str] = None, bg: bool = False) -> None:
-    process = subprocess.Popen(" ".join(cmd), cwd=cwd, shell=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+
+def print_process_output(process):
     for line in iter(process.stdout.readline, b''):
         print(line.decode(), end='')
     process.stdout.close()
-    if not bg:
-        assert process.wait() == 0
-    else:
+
+def run_command(cmd: List[str], cwd: Optional[str] = None, bg: bool = False) -> None:
+    process = subprocess.Popen(" ".join(cmd), cwd=cwd, shell=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+    
+    if bg:
+        # Create a separate thread to handle the printing of the process's output
+        threading.Thread(target=print_process_output, args=(process,), daemon=True).start()
         return process.pid
+    else:
+        print_process_output(process)
+        assert process.wait() == 0
 
 def get_ckpt_names_with_node_info(workflow_json: Union[Dict, List], is_windows: bool) -> List[ModelFileWithNodeInfo]:
     ckpt_names = []
@@ -195,7 +203,7 @@ def setup_custom_nodes_from_snapshot(project_folder_path, launcher_json):
         )
         
         # Clone the custom node repository
-        run_command(["git", "clone", custom_node_repo_url, custom_node_path])
+        run_command(["git", "clone", custom_node_repo_url, custom_node_path, "--recursive"])
 
         if custom_node_hash:
             # Checkout the specific hash

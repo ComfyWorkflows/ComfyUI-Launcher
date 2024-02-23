@@ -175,6 +175,7 @@ def start_project(id):
     command = f"python main.py --port {port}"
     if os.name == "nt":
         command = f"start \"\" cmd /c \"{command}\""
+
     pid = run_command_in_project_comfyui_venv(
         project_path, command, in_bg=True
     )
