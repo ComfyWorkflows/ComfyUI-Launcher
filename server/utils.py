@@ -129,10 +129,10 @@ def run_command_in_project_comfyui_venv(project_folder_path, command, in_bg=Fals
     
     assert os.path.exists(venv_activate), f"Virtualenv does not exist in project folder: {project_folder_path}"
 
-    if not in_bg:
-        run_command([venv_activate, "&&", "cd", comfyui_dir, "&&", command])
+    if os.name == "nt":
+        return run_command([venv_activate, "&&", "cd", comfyui_dir, "&&", command], bg=in_bg)
     else:
-        return run_command([venv_activate, "&&", "cd", comfyui_dir, "&&", command], bg=True)
+        return run_command(["source", venv_activate, "&&", "cd", comfyui_dir, "&&", command], bg=in_bg)
 
 
 def install_default_custom_nodes(project_folder_path, launcher_json=None):
