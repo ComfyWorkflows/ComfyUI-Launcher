@@ -519,7 +519,4 @@ def create_symlink(source, target):
         os.symlink(source, target, target_is_directory=True)
 
 def create_virtualenv(venv_path):
-    if os.name == 'nt':  # Check if running on Windows
-        run_command(['virtualenv', venv_path])
-    else:
-        run_command(['python', '-m', 'venv', venv_path])
+    run_command(['python', '-m', 'venv', venv_path])
