@@ -1,1 +1,0 @@
-docker run --rm -p 3000:3000 --add-host=host.docker.internal:host-gateway --name comfyui_launcher_web -it thecooltechguy/comfyui_launcher_web

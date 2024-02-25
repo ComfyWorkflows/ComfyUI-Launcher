@@ -1,1 +1,0 @@
-docker build -t thecooltechguy/comfyui_launcher_web .
