@@ -3,7 +3,7 @@ repos:
     hooks:
       - id: build-web-ui
         name: Build Web UI
-        entry: cd web/ && npm run build
+        entry: bash -c 'cd web && npm run build'
         language: system
         files: '^web/.*\.(js|jsx|ts|tsx|css|scss|sass|html|json)$'
         stages: [commit]
