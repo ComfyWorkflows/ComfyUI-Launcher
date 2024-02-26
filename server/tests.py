@@ -1,63 +1,3 @@
-### PSEUDOCODE
-
-# takes in an argument: the endpoint of the launcher server
-
-# num_total_tests = len(files)
-# passed_tests = []
-# failed_tests = []
-
-# for each input json file in both /templates directory and /test_workflows directory (recursive search, json files might be in sub-folders)
-# load the contents of the json file into memory
-
-# for each json object in memory, replace image filepaths with our testing image filepath
-# do the same for videeo filepaths in the json file
-
-# fetch to /import_project name=<uuid> import_json=<json>
-# returns an id
-
-# fetch to /projects/<id>/start
-# returns a port
-
-# use selenium navigate to http://localhost:<port>
-# wait 15s for the page to load
-# click on Queue prompt button
-# wait 5s
-# stop selenium
-
-# get request to http://localhost:<port>/queue
-# find the client_id and the prompt_id for the prompt we just created in the resopnse above (via selenium)
-
-"""
-ws = websocket.WebSocket()
-ws.connect("ws://{}/ws?clientId={}".format("localhost:<port>", client_id))
-
-is_success = False
-while True:
-    out = ws.recv()
-    if isinstance(out, str):
-        message = json.loads(out)
-        if message['type'] == 'executing':
-            data = message['data']
-            if data['node'] is None and data['prompt_id'] == prompt_id:
-                is_success = True
-                break #Execution is done
-        elif message['type'] == 'execution_error':
-            is_success = False
-            break
-    else:
-        continue #previews are binary data
-        
-if is_success
-    passed_tests.append(json_file)
-else:
-    failed_tests.append(json_file)
-ws.close()
-make POST request to /projects/<id>/delete
-"""
-
-# at the end, print out the number of tests that passed and the number of tests that failed
-
-### SCRIPT
 import os
 import json
 import requests
@@ -85,37 +25,22 @@ def load_json_files(directory):
                     json_files.append((os.path.join(root, file), json_data))
     return json_files
 
-# def replace_filepaths(json_obj):
-#     for node in json_obj["nodes"]:
-#         for input_obj in node.get("inputs", []):
-#             if input_obj["type"] == "IMAGE" or input_obj["type"] == "VIDEO":
-#                 for widget_value in node.get("widgets_values", []):
-#                     if isinstance(widget_value, dict) and "params" in widget_value:
-#                         if widget_value["params"].get("type") == "output":
-#                             if widget_value["params"]["format"] == "image/gif":
-#                                 widget_value["params"]["filename"] = "./example.gif"
-#                             elif widget_value["params"]["format"] == "image/png":
-#                                 widget_value["params"]["filename"] = "./example.png"
-#                             elif widget_value["params"]["format"] == "image/jpeg":
-#                                 widget_value["params"]["filename"] = "./example.jpeg"
-#                             elif widget_value["params"]["format"] == "video/mp4":
-#                                 widget_value["params"]["filename"] = "./example.mp4"
-#     return json_obj
-
 def replace_filepaths(json_obj):
-    print(f"replace_filepaths 1. replacing for json_obj.")
+    script_dir = os.path.dirname(__file__)
+    print(f"replace_filepaths 1. script_dir: {script_dir}")
+    print(f"replace_filepaths 3. replacing for json_obj.")
     for node in json_obj["nodes"]:
-        print(f"replace_filepaths 2. replacing for node: {node}")
+        print(f"replace_filepaths 4. replacing for node: {node}")
         if node["type"] == "VHS_LoadVideo":
-            print(f"replace_filepaths 3a. node is of type VHS_LoadVideo")
+            print(f"replace_filepaths 5a. node is of type VHS_LoadVideo")
             if "widgets_values" in node and "video" in node["widgets_values"]:
-                print(f"replace_filepaths 4. widgets_values is in node and video is in widgets_values")
-                node["widgets_values"]["video"] = "/Users/dylan/launcher/server/example.mp4"
+                print(f"replace_filepaths 6. widgets_values is in node and video is in widgets_values. SETTING video to {os.path.join(script_dir, 'example.mp4')}")
+                node["widgets_values"]["video"] = os.path.join(script_dir, "example.mp4")
         elif node["type"] == "LoadImage":
-            print(f"replace_filepaths 3b. node is of type LoadImage")
+            print(f"replace_filepaths 5b. node is of type LoadImage")
             if "widgets_values" in node and len(node["widgets_values"]) > 0:
-                print(f"replace_filepaths 4. widgets_values is in node and the len of widgets_values is > 0")
-                node["widgets_values"][0] = "/Users/dylan/launcher/server/example.png"
+                print(f"replace_filepaths 6. widgets_values is in node and the len of widgets_values is > 0. SETTING image to {os.path.join(script_dir, 'example.png')}")
+                node["widgets_values"][0] = os.path.join(script_dir, "example.png")
     return json_obj
 
 
@@ -158,14 +83,6 @@ def run_tests(server_url):
         response = requests.post(f"{server_url}/api/projects/{project_id}/start")
         port = response.json()['port']
         print(f"run_tests 5. got response from /projects/{project_id}/start: {response}. and got port: {port}")
-        
-        # Use selenium
-        # driver = webdriver.Chrome()
-        # driver.get(f"http://localhost:{port}")
-        # WebDriverWait(driver, 15).until(EC.presence_of_element_located((By.ID, 'queue-button')))
-        # driver.find_element_by_id('queue-button').click()
-        # time.sleep(5)
-        # driver.quit()
 
         # Use selenium
         driver = webdriver.Chrome()
@@ -213,12 +130,6 @@ def run_tests(server_url):
             client_id = queue_running[0][3].get("client_id")
         print(f"run_tests 10. got client_id from http://localhost:{port}/queue:: {client_id}")
         print(f"run_tests 11. got prompt_id from http://localhost:{port}/queue:: {prompt_id}")
-
-        # for item in queue_running:
-        #     # Assuming the client_id is the second element in each item tuple
-        #     client_id = item[1].get("client_id")
-        #     prompt_id = item[1].get("prompt_id")
-        #     break  # Assuming you only want the first item
 
         if not client_id or not prompt_id:
             print(f"run_tests F. either prompt_id ({prompt_id}) or client_id({client_id}) is null!")
