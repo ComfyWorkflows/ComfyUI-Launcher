@@ -126,7 +126,7 @@ def run_command_in_project_venv(project_folder_path, command):
     if os.name == "nt":
         command = ["call", venv_activate, "&&", command]
     else:
-        command = ["source", venv_activate, "&&", command]
+        command = [".", venv_activate, "&&", command]
     
     # Run the command using subprocess and capture stdout
     run_command(command)
@@ -140,7 +140,7 @@ def run_command_in_project_comfyui_venv(project_folder_path, command, in_bg=Fals
     if os.name == "nt":
         return run_command([venv_activate, "&&", "cd", comfyui_dir, "&&", command], bg=in_bg)
     else:
-        return run_command(["source", venv_activate, "&&", "cd", comfyui_dir, "&&", command], bg=in_bg)
+        return run_command([".", venv_activate, "&&", "cd", comfyui_dir, "&&", command], bg=in_bg)
 
 
 def install_default_custom_nodes(project_folder_path, launcher_json=None):
