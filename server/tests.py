@@ -110,12 +110,12 @@ def replace_filepaths(json_obj):
             print(f"replace_filepaths 3a. node is of type VHS_LoadVideo")
             if "widgets_values" in node and "video" in node["widgets_values"]:
                 print(f"replace_filepaths 4. widgets_values is in node and video is in widgets_values")
-                node["widgets_values"]["video"] = "./server/example.mp4"
+                node["widgets_values"]["video"] = "/Users/dylan/launcher/server/example.mp4"
         elif node["type"] == "LoadImage":
             print(f"replace_filepaths 3b. node is of type LoadImage")
             if "widgets_values" in node and len(node["widgets_values"]) > 0:
                 print(f"replace_filepaths 4. widgets_values is in node and the len of widgets_values is > 0")
-                node["widgets_values"][0] = "./server/example.png"
+                node["widgets_values"][0] = "/Users/dylan/launcher/server/example.png"
     return json_obj
 
 
