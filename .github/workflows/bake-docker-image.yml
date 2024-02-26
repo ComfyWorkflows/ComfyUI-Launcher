@@ -1,4 +1,4 @@
-name: ci
+name: bake-docker-image
 
 on:
   push:
