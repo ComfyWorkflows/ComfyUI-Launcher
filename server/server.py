@@ -3,7 +3,7 @@ import shutil
 import signal
 import subprocess
 import time
-from flask import Flask, jsonify, request
+from flask import Flask, jsonify, request, render_template
 from showinfm import show_in_file_manager
 from settings import PROJECTS_DIR, MODELS_DIR, TEMPLATES_DIR
 import os, psutil, sys
@@ -24,16 +24,18 @@ from utils import (
     update_config,
 )
 
-app = Flask(__name__)
+app = Flask(
+    __name__, static_url_path="", static_folder="../web/dist", template_folder="../web/dist"
+)
 
 
-@app.route("/open_models_folder")
+@app.route("/api/open_models_folder")
 def open_models_folder():
     show_in_file_manager(MODELS_DIR)
     return ""
 
 
-@app.route("/projects", methods=["GET"])
+@app.route("/api/projects", methods=["GET"])
 def list_projects():
     projects = []
     for proj_folder in os.listdir(PROJECTS_DIR):
@@ -56,7 +58,7 @@ def list_projects():
     return jsonify(projects)
 
 
-@app.route("/projects/<id>", methods=["GET"])
+@app.route("/api/projects/<id>", methods=["GET"])
 def get_project(id):
     project_path = os.path.join(PROJECTS_DIR, id)
     assert os.path.exists(project_path), f"Project with id {id} does not exist"
@@ -72,27 +74,27 @@ def get_project(id):
     )
 
 
-@app.route("/get_config", methods=["GET"])
+@app.route("/api/get_config", methods=["GET"])
 def api_get_config():
     config = get_config()
     return jsonify(config)
 
 
-@app.route("/update_config", methods=["POST"])
+@app.route("/api/update_config", methods=["POST"])
 def api_update_config():
     request_data = request.get_json()
     update_config(request_data)
     return jsonify({"success": True})
 
 
-@app.route("/set_config", methods=["POST"])
+@app.route("/api/set_config", methods=["POST"])
 def api_set_config():
     request_data = request.get_json()
     set_config(request_data)
     return jsonify({"success": True})
 
 
-@app.route("/create_project", methods=["POST"])
+@app.route("/api/create_project", methods=["POST"])
 def create_project():
     request_data = request.get_json()
     name = request_data["name"]
@@ -124,7 +126,7 @@ def create_project():
     return jsonify({"success": True})
 
 
-@app.route("/import_project", methods=["POST"])
+@app.route("/api/import_project", methods=["POST"])
 def import_project():
     request_data = request.get_json()
     name = request_data["name"]
@@ -150,7 +152,7 @@ def import_project():
     return jsonify({"success": True})
 
 
-@app.route("/projects/<id>/start", methods=["POST"])
+@app.route("/api/projects/<id>/start", methods=["POST"])
 def start_project(id):
     project_path = os.path.join(PROJECTS_DIR, id)
     assert os.path.exists(project_path), f"Project with id {id} does not exist"
@@ -185,7 +187,7 @@ def start_project(id):
     return jsonify({"success": True})
 
 
-@app.route("/projects/<id>/stop", methods=["POST"])
+@app.route("/api/projects/<id>/stop", methods=["POST"])
 def stop_project(id):
     project_path = os.path.join(PROJECTS_DIR, id)
     assert os.path.exists(project_path), f"Project with id {id} does not exist"
@@ -210,7 +212,7 @@ def stop_project(id):
     return jsonify({"success": True})
 
 
-@app.route("/projects/<id>/delete", methods=["POST"])
+@app.route("/api/projects/<id>/delete", methods=["POST"])
 def delete_project(id):
     project_path = os.path.join(PROJECTS_DIR, id)
     assert os.path.exists(project_path), f"Project with id {id} does not exist"
@@ -225,29 +227,17 @@ def delete_project(id):
     return jsonify({"success": True})
 
 
+@app.route('/', defaults={'path': ''})
+@app.route('/<path:path>')
+@app.errorhandler(404)
+def index(path):
+    return render_template("index.html")
+
 if __name__ == "__main__":
-    # start a process in the bg that runs the following command
-    # docker run --rm -p 3000:3000 --add-host=host.docker.internal:host-gateway --name comfyui_launcher_web -it thecooltechguy/comfyui_launcher_web
-    if "--only-server" not in sys.argv:
-        print("Starting web UI...")
-        os.system("docker rm -f comfyui_launcher_web")  # remove any existing container
-        proc = subprocess.Popen(
-            [
-                "docker",
-                "run",
-                "--rm",
-                "-p",
-                "3000:3000",
-                "--add-host=host.docker.internal:host-gateway",
-                "--name",
-                "comfyui_launcher_web",
-                "-it",
-                "thecooltechguy/comfyui_launcher_web",
-            ]
-        )
-    print("Starting server...")
+    print("Starting ComfyUI Launcher...")
     os.makedirs(PROJECTS_DIR, exist_ok=True)
     os.makedirs(MODELS_DIR, exist_ok=True)
     if not os.path.exists(CONFIG_FILEPATH):
         set_config(DEFAULT_CONFIG)
+    print("Open http://localhost:4000 in your browser.")
     app.run(host="0.0.0.0", debug=False, port=4000)

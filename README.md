@@ -27,10 +27,36 @@ Running a workflow json file w/ no setup
 https://github.com/ComfyWorkflows/ComfyUI-Launcher/assets/33400216/aa17680d-eee5-4e6d-abc4-9f7551f9a4ad
 
 ## Requirements
-- Python 3
-- Docker or Node/npm (19 or later)
 
-## Installation
+#### Windows (Windows Subsystem for Linux - WSL2) & Linux:
+- Docker (w/ GPU support) or Python 3
+
+#### macOS:
+- Python 3
+
+## Quick start
+
+### Option 1: Docker (recommended)
+
+Only works for **Linux** & **Windows (WSL2)**. For **macOS**, use Option 2.
+
+```
+docker run \
+--gpus all \
+--rm \
+--name comfyui_launcher \
+--net=host \
+-v $(pwd)/comfyui_launcher_models:/app/server/models \
+-v $(pwd)/comfyui_launcher_projects:/app/server/projects \
+-it thecooltechguy/comfyui_launcher
+```
+
+Open http://localhost:4000 in your browser
+
+### Option 2: Manual setup
+Works for **Windows (WSL2)**, **Linux**, & **macOS**
+
+#### Installation (one-time setup)
 ```
 git clone https://github.com/ComfyWorkflows/comfyui-launcher
 cd comfyui-launcher/
@@ -39,37 +65,31 @@ source venv/bin/activate
 pip install -r requirements.txt
 ```
 
-## Starting ComfyUI Launcher
-
-### Option 1: Using Docker
+#### Start ComfyUI Launcher
 ```
 source venv/bin/activate
 cd server/ && python server.py
 ```
-Open http://localhost:3000
+Open http://localhost:4000 in your browser
 
-### Option 2: Using Node/npm
+
+## Updating
+### Option 1: Docker
 ```
-cd web/ && npm install # Only need to run this once
-npm run dev # must be in the web/ folder
-```
-In a separate terminal, run:
-```
-source venv/bin/activate
-cd server/ && python server.py --only-server
+docker pull thecooltechguy/comfyui_launcher
 ```
 
-Open http://localhost:3000
-
-## Updating ComfyUI Launcher
+### Option 2: Manual setup
 ```
 git pull
 source venv/bin/activate
 pip install -r requirements.txt
-docker pull thecooltechguy/comfyui_launcher_web # if using Docker
 ```
 
 ## Coming soon
+- Simpler setup & installation process
+- Better handling of missing model files
+- Windows support
 - Better way to manage your workflows locally
 - Run workflows w/ Cloud GPUs
 - Backup your projects to the cloud
