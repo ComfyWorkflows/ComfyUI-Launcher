@@ -1,0 +1,11 @@
+repos:
+  - repo: local
+    hooks:
+      - id: build-web-ui
+        name: Build Web UI
+        entry: bash -c 'cd web && npm run build'
+        language: system
+        files: '^web/.*\.(js|jsx|ts|tsx|css|scss|sass|html|json)$'
+        stages: [commit]
+        pass_filenames: false
+        verbose: true
