@@ -202,18 +202,23 @@ def run_tests(server_url):
         print(f"run_tests 7. queue_data from http://localhost:{port}/queue: {queue_data}.")
 
         queue_running = queue_data.get("queue_running", [])
+        print(f"run_tests 8. queue_running from http://localhost:{port}/queue: {queue_running}.")
 
         client_id = None
         prompt_id = None
 
-        for item in queue_running:
-            # Assuming the client_id is the second element in each item tuple
-            client_id = item[1].get("client_id")
-            prompt_id = item[1].get("prompt_id")
-            break  # Assuming you only want the first item
+        if queue_running:
+            print(f"run_tests 9. queue_running is not empty!")
+            prompt_id = queue_running[0][1]
+            client_id = queue_running[0][3].get("client_id")
+        print(f"run_tests 10. got client_id from http://localhost:{port}/queue:: {client_id}")
+        print(f"run_tests 11. got prompt_id from http://localhost:{port}/queue:: {prompt_id}")
 
-        print(f"run_tests 8. client_id from http://localhost:{port}/queue: {client_id}.")
-        print(f"run_tests 9. prompt_id from http://localhost:{port}/queue: {prompt_id}.")
+        # for item in queue_running:
+        #     # Assuming the client_id is the second element in each item tuple
+        #     client_id = item[1].get("client_id")
+        #     prompt_id = item[1].get("prompt_id")
+        #     break  # Assuming you only want the first item
 
         if not client_id or not prompt_id:
             print(f"run_tests F. either prompt_id ({prompt_id}) or client_id({client_id}) is null!")
