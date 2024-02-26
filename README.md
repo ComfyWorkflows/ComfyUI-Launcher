@@ -82,9 +82,8 @@ git pull
 ```
 
 ## Coming soon
-- Simpler setup & installation process
 - Better handling of missing model files
-- Windows support
+- Native Windows support (w/o requiring WSL)
 - Better way to manage your workflows locally
 - Run workflows w/ Cloud GPUs
 - Backup your projects to the cloud
