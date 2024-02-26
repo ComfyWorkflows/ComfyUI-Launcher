@@ -8,5 +8,4 @@ repos:
         files: '^web/.*\.(js|jsx|ts|tsx|css|scss|sass|html|json)$'
         stages: [commit]
         pass_filenames: false
-        always_run: true
         verbose: true
