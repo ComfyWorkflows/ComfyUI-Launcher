@@ -6,7 +6,7 @@ Need help? Join our Discord!
 [![](https://dcbadge.vercel.app/api/server/kXS43yTRNA)](https://discord.gg/kXS43yTRNA)
 
 ## Features
-- Automatically installs custom nodes, downloads model files, etc.
+- Automatically installs custom nodes, missing model files, etc.
 - Workflows exported by this tool can be run by anyone with **ZERO setup**
 - Work on multiple ComfyUI workflows at the same time
 - Each workflow runs in its own isolated environment
