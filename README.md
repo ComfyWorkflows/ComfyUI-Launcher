@@ -28,7 +28,7 @@ https://github.com/ComfyWorkflows/ComfyUI-Launcher/assets/33400216/aa17680d-eee5
 
 ## Requirements
 
-#### Windows (Windows Subsystem for Linux - WSL2) & Linux:
+#### Windows (Windows Subsystem for Linux - WSL) & Linux:
 - Docker (w/ GPU support) or Python 3
 
 #### macOS:
@@ -38,7 +38,7 @@ https://github.com/ComfyWorkflows/ComfyUI-Launcher/assets/33400216/aa17680d-eee5
 
 ### Option 1: Docker (recommended)
 
-Only works for **Linux** & **Windows (WSL2)**. For **macOS**, use Option 2.
+Only works for **Linux** & **Windows (WSL)**. For **macOS**, use Option 2.
 
 ```
 docker run \
@@ -54,21 +54,18 @@ docker run \
 Open http://localhost:4000 in your browser
 
 ### Option 2: Manual setup
-Works for **Windows (WSL2)**, **Linux**, & **macOS**
+Works for **Windows (WSL)**, **Linux**, & **macOS**
 
 #### Installation (one-time setup)
 ```
 git clone https://github.com/ComfyWorkflows/comfyui-launcher
 cd comfyui-launcher/
-python3 -m venv venv
-source venv/bin/activate
-pip install -r requirements.txt
+chmod +x run.sh
 ```
 
 #### Start ComfyUI Launcher
 ```
-source venv/bin/activate
-cd server/ && python server.py
+./run.sh
 ```
 Open http://localhost:4000 in your browser
 
@@ -82,8 +79,6 @@ docker pull thecooltechguy/comfyui_launcher
 ### Option 2: Manual setup
 ```
 git pull
-source venv/bin/activate
-pip install -r requirements.txt
 ```
 
 ## Coming soon
