@@ -2391,7 +2391,7 @@
   "files": [
     [
       {
-        "download_url": "https://comfyworkflows.com/api/comfyui-launcher/files/h/1106255/download",
+        "download_url": "https://comfyworkflows.com/api/comfyui-launcher/files/h/73118211/download",
         "dest_relative_path": "models/upscale_models/4x-UltraSharp.pth",
         "sha256_checksum": "a5812231fc936b42af08a5edba784195495d303d5b3248c24489ef0c4021fe01",
         "size": 66961958
