@@ -125,15 +125,16 @@ def run_tests(server_url):
     failed_tests = []
 
     templates_dir = './server/templates'
-    # testworkflows_dir = './test_workflows'
+    test_workflows_dir = './server/test-workflows'
 
-    templates_json = load_json_files(templates_dir)
-    # testworkflows_json = load_json_files(testworkflows_dir)
-    print(f"run_tests 2. templates_json length: {len(templates_json)}.")
+    # templates_json = load_json_files(templates_dir)
+    test_workflows_json = load_json_files(test_workflows_dir)
+    # print(f"run_tests 2. templates_json length: {len(templates_json)}.")
+    print(f"run_tests 2. test_workflows_json length: {len(test_workflows_json)}.")
 
     # all_json = templates_json + testworkflows_json
 
-    for file_path, json_obj in templates_json: #all_json
+    for file_path, json_obj in test_workflows_json: #all_json
         NAME = str(uuid.uuid4())
         print(f"run_tests 3. entered for loop for file_path: {file_path} and generated name: {NAME}")
         replaced_json_obj = replace_filepaths(json_obj)
@@ -159,12 +160,40 @@ def run_tests(server_url):
         print(f"run_tests 5. got response from /projects/{project_id}/start: {response}. and got port: {port}")
         
         # Use selenium
+        # driver = webdriver.Chrome()
+        # driver.get(f"http://localhost:{port}")
+        # WebDriverWait(driver, 15).until(EC.presence_of_element_located((By.ID, 'queue-button')))
+        # driver.find_element_by_id('queue-button').click()
+        # time.sleep(5)
+        # driver.quit()
+
+        # Use selenium
         driver = webdriver.Chrome()
+        print(f"run_tests SELENIUM 1. driver instantiated!")
+
         driver.get(f"http://localhost:{port}")
+        print(f"run_tests SELENIUM 2. driver got to http://localhost:{port}")
+
+        # Wait for the document to be in a ready state
+        WebDriverWait(driver, 15).until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
+        print(f"run_tests SELENIUM 3. driver got to http://localhost:{port} and is in ready state.")
+
+        # Switch to the iframe
+        iframe = driver.find_element(By.TAG_NAME, 'iframe')
+        driver.switch_to.frame(iframe)
+        print("run_tests SELENIUM 4. Switched to iframe.")
+
+        # Wait for the presence of the 'queue-button' element inside the iframe
         WebDriverWait(driver, 15).until(EC.presence_of_element_located((By.ID, 'queue-button')))
-        driver.find_element_by_id('queue-button').click()
+        print(f"run_tests SELENIUM 5. driver found queue-button element inside the iframe.")
+
+        # Click on the 'queue-button' element inside the iframe
+        driver.find_element(By.ID, 'queue-button').click()
+        print(f"run_tests SELENIUM 6. driver clicked queue-button element inside the iframe.")
+
         time.sleep(5)
         driver.quit()
+        print(f"run_tests SELENIUM 7 (quit selenium driver).")
         
         # Get request to http://localhost:<port>/queue
         response = requests.get(f"http://localhost:{port}/queue")
