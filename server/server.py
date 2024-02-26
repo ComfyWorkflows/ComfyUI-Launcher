@@ -17,6 +17,7 @@ from utils import (
     get_launcher_state,
     is_launcher_json_format,
     is_port_in_use,
+    run_command,
     run_command_in_project_comfyui_venv,
     set_config,
     set_launcher_state_data,
@@ -123,7 +124,7 @@ def create_project():
     create_comfyui_project(
         project_path, models_path, id=id, name=name, launcher_json=launcher_json
     )
-    return jsonify({"success": True})
+    return jsonify({"success": True, "id": id})
 
 
 @app.route("/api/import_project", methods=["POST"])
@@ -149,7 +150,7 @@ def import_project():
     create_comfyui_project(
         project_path, models_path, id=id, name=name, launcher_json=launcher_json
     )
-    return jsonify({"success": True})
+    return jsonify({"success": True, "id": id})
 
 
 @app.route("/api/projects/<id>/start", methods=["POST"])
@@ -167,9 +168,19 @@ def start_project(id):
     assert port, "No free port found"
     assert not is_port_in_use(port), f"Port {port} is already in use"
 
+    # # start the project
+    # pid = run_command_in_project_comfyui_venv(
+    #     project_path, f"python main.py --port {port}", in_bg=True
+    # )
+    # assert pid, "Failed to start the project"
+
     # start the project
+    command = f"python main.py --port {port}"
+    if os.name == "nt":
+        command = f"start \"\" cmd /c \"{command}\""
+
     pid = run_command_in_project_comfyui_venv(
-        project_path, f"python main.py --port {port}", in_bg=True
+        project_path, command, in_bg=True
     )
     assert pid, "Failed to start the project"
 
@@ -184,7 +195,7 @@ def start_project(id):
     set_launcher_state_data(
         project_path, {"state": "running", "port": port, "pid": pid}
     )
-    return jsonify({"success": True})
+    return jsonify({"success": True, "port": port})
 
 
 @app.route("/api/projects/<id>/stop", methods=["POST"])
