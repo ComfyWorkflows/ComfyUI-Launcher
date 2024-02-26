@@ -194,17 +194,27 @@ def run_tests(server_url):
         time.sleep(5)
         driver.quit()
         print(f"run_tests SELENIUM 7 (quit selenium driver).")
-        
+
         # Get request to http://localhost:<port>/queue
         response = requests.get(f"http://localhost:{port}/queue")
         print(f"run_tests 6. made request to comfyui queue got response from http://localhost:{port}/queue: {response}.")
         queue_data = response.json()
         print(f"run_tests 7. queue_data from http://localhost:{port}/queue: {queue_data}.")
-        client_id = queue_data.get("queue_running", {})[3].get("client_id")
+
+        queue_running = queue_data.get("queue_running", [])
+
+        client_id = None
+        prompt_id = None
+
+        for item in queue_running:
+            # Assuming the client_id is the second element in each item tuple
+            client_id = item[1].get("client_id")
+            prompt_id = item[1].get("prompt_id")
+            break  # Assuming you only want the first item
+
         print(f"run_tests 8. client_id from http://localhost:{port}/queue: {client_id}.")
-        prompt_id = queue_data.get("queue_running", {})[1]
         print(f"run_tests 9. prompt_id from http://localhost:{port}/queue: {prompt_id}.")
-        
+
         if not client_id or not prompt_id:
             print(f"run_tests F. either prompt_id ({prompt_id}) or client_id({client_id}) is null!")
             failed_tests.append(file_path)
