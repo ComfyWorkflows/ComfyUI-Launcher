@@ -1,0 +1,295 @@
+{
+  "last_node_id": 22,
+  "last_link_id": 25,
+  "nodes": [
+    {
+      "id": 11,
+      "type": "MagicAnimateModelLoader",
+      "pos": [
+        1299,
+        71
+      ],
+      "size": {
+        "0": 625.125,
+        "1": 169.78125
+      },
+      "flags": {},
+      "order": 0,
+      "mode": 0,
+      "outputs": [
+        {
+          "name": "MAGIC_ANIMATE_MODEL",
+          "type": "MAGIC_ANIMATE_MODEL",
+          "links": [
+            18
+          ],
+          "shape": 3,
+          "slot_index": 0
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "MagicAnimateModelLoader"
+      },
+      "widgets_values": [
+        "densepose_controlnet/diffusion_pytorch_model.safetensors",
+        "appearance_encoder/diffusion_pytorch_model.safetensors",
+        "temporal_attention/temporal_attention.ckpt",
+        "cuda"
+      ]
+    },
+    {
+      "id": 17,
+      "type": "MagicAnimate",
+      "pos": [
+        2067,
+        81
+      ],
+      "size": [
+        348.50434310546825,
+        146
+      ],
+      "flags": {},
+      "order": 4,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "magic_animate_model",
+          "type": "MAGIC_ANIMATE_MODEL",
+          "link": 18
+        },
+        {
+          "name": "image",
+          "type": "IMAGE",
+          "link": 19,
+          "slot_index": 1
+        },
+        {
+          "name": "pose_video",
+          "type": "IMAGE",
+          "link": 25
+        }
+      ],
+      "outputs": [
+        {
+          "name": "IMAGE",
+          "type": "IMAGE",
+          "links": [
+            21
+          ],
+          "shape": 3,
+          "slot_index": 0
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "MagicAnimate"
+      },
+      "widgets_values": [
+        1268,
+        "randomize",
+        25
+      ]
+    },
+    {
+      "id": 15,
+      "type": "VHS_LoadVideo",
+      "pos": [
+        1913,
+        324
+      ],
+      "size": [
+        739.7655455078127,
+        935.7655455078127
+      ],
+      "flags": {},
+      "order": 1,
+      "mode": 0,
+      "outputs": [
+        {
+          "name": "IMAGE",
+          "type": "IMAGE",
+          "links": [
+            25
+          ],
+          "shape": 3,
+          "slot_index": 0
+        },
+        {
+          "name": "frame_count",
+          "type": "INT",
+          "links": null,
+          "shape": 3
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "VHS_LoadVideo"
+      },
+      "widgets_values": {
+        "video": "demo4.mp4",
+        "force_rate": 0,
+        "force_size": "Disabled",
+        "custom_width": 512,
+        "custom_height": 512,
+        "frame_load_cap": 0,
+        "skip_first_frames": 0,
+        "select_every_nth": 1,
+        "choose video to upload": "image",
+        "videopreview": {
+          "hidden": false,
+          "paused": false,
+          "params": {
+            "filename": "demo4.mp4",
+            "type": "input",
+            "format": "video"
+          }
+        }
+      }
+    },
+    {
+      "id": 18,
+      "type": "VHS_VideoCombine",
+      "pos": [
+        2671,
+        322
+      ],
+      "size": [
+        717.0816885351569,
+        941.0816885351569
+      ],
+      "flags": {},
+      "order": 5,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "images",
+          "type": "IMAGE",
+          "link": 21
+        }
+      ],
+      "outputs": [],
+      "properties": {
+        "Node name for S&R": "VHS_VideoCombine"
+      },
+      "widgets_values": {
+        "frame_rate": 25,
+        "loop_count": 0,
+        "filename_prefix": "AnimateDiff",
+        "format": "image/gif",
+        "pingpong": false,
+        "save_image": true,
+        "crf": 20,
+        "save_metadata": true,
+        "audio_file": "",
+        "videopreview": {
+          "hidden": false,
+          "paused": false,
+          "params": {
+            "filename": "AnimateDiff_00013.gif",
+            "subfolder": "",
+            "type": "output",
+            "format": "image/gif"
+          }
+        }
+      }
+    },
+    {
+      "id": 14,
+      "type": "LoadImage",
+      "pos": [
+        1071,
+        325
+      ],
+      "size": [
+        822.3613708984369,
+        988.6214749023432
+      ],
+      "flags": {},
+      "order": 2,
+      "mode": 0,
+      "outputs": [
+        {
+          "name": "IMAGE",
+          "type": "IMAGE",
+          "links": [
+            19
+          ],
+          "shape": 3,
+          "slot_index": 0
+        },
+        {
+          "name": "MASK",
+          "type": "MASK",
+          "links": null,
+          "shape": 3
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "LoadImage"
+      },
+      "widgets_values": [
+        "donald-trump-person-of-year-2017-time-magazine-square-mobile-2.webp",
+        "image"
+      ]
+    },
+    {
+      "id": 22,
+      "type": "Note",
+      "pos": [
+        2529,
+        -33
+      ],
+      "size": [
+        599.0348861877119,
+        140.00292675082238
+      ],
+      "flags": {},
+      "order": 3,
+      "mode": 0,
+      "properties": {
+        "text": ""
+      },
+      "widgets_values": [
+        "This workflow lets you animate any image with a DensePose video using MagicAnimate!\n\nNote that the input video must be DensePose frames, instead of any arbitrary type of video.\n\nThis uses the following custom node: https://github.com/thecooltechguy/ComfyUI-MagicAnimate\n\nFind thousands of other workflows at: comfyworkflows.com\n\nJoin our Discord (1.2K+ ppl): https://discord.gg/hwwbNRAq6E"
+      ],
+      "color": "#432",
+      "bgcolor": "#653"
+    }
+  ],
+  "links": [
+    [
+      18,
+      11,
+      0,
+      17,
+      0,
+      "MAGIC_ANIMATE_MODEL"
+    ],
+    [
+      19,
+      14,
+      0,
+      17,
+      1,
+      "IMAGE"
+    ],
+    [
+      21,
+      17,
+      0,
+      18,
+      0,
+      "IMAGE"
+    ],
+    [
+      25,
+      15,
+      0,
+      17,
+      2,
+      "IMAGE"
+    ]
+  ],
+  "groups": [],
+  "config": {},
+  "extra": {},
+  "version": 0.4
+}
