@@ -1,0 +1,719 @@
+{
+  "last_node_id": 44,
+  "last_link_id": 115,
+  "nodes": [
+    {
+      "id": 36,
+      "type": "StableCascade_StageB_Conditioning",
+      "pos": [
+        1930,
+        360
+      ],
+      "size": {
+        "0": 277.20001220703125,
+        "1": 46
+      },
+      "flags": {},
+      "order": 10,
+      "mode": 0,
+      "inputs": [
+        {
+          "link": 105,
+          "name": "conditioning",
+          "type": "CONDITIONING"
+        },
+        {
+          "link": 88,
+          "name": "stage_c",
+          "type": "LATENT"
+        }
+      ],
+      "outputs": [
+        {
+          "links": [
+            86
+          ],
+          "name": "CONDITIONING",
+          "shape": 3,
+          "slot_index": 0,
+          "type": "CONDITIONING"
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "StableCascade_StageB_Conditioning"
+      }
+    },
+    {
+      "id": 40,
+      "type": "ConditioningZeroOut",
+      "pos": [
+        1930,
+        300
+      ],
+      "size": {
+        "0": 211.60000610351562,
+        "1": 26
+      },
+      "flags": {},
+      "order": 8,
+      "mode": 0,
+      "inputs": [
+        {
+          "link": 109,
+          "name": "conditioning",
+          "type": "CONDITIONING"
+        }
+      ],
+      "outputs": [
+        {
+          "links": [
+            104,
+            105
+          ],
+          "name": "CONDITIONING",
+          "shape": 3,
+          "slot_index": 0,
+          "type": "CONDITIONING"
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "ConditioningZeroOut"
+      }
+    },
+    {
+      "id": 42,
+      "type": "ModelSamplingStableCascade",
+      "pos": [
+        1160,
+        350
+      ],
+      "size": {
+        "0": 315,
+        "1": 58
+      },
+      "flags": {},
+      "order": 5,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "model",
+          "type": "MODEL",
+          "link": 110
+        }
+      ],
+      "outputs": [
+        {
+          "name": "MODEL",
+          "type": "MODEL",
+          "links": [
+            111
+          ],
+          "shape": 3,
+          "slot_index": 0
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "ModelSamplingStableCascade"
+      },
+      "widgets_values": [
+        2
+      ]
+    },
+    {
+      "id": 7,
+      "type": "CLIPTextEncode",
+      "pos": [
+        1160,
+        640
+      ],
+      "size": {
+        "0": 425.27801513671875,
+        "1": 180.6060791015625
+      },
+      "flags": {},
+      "order": 7,
+      "mode": 0,
+      "inputs": [
+        {
+          "link": 94,
+          "name": "clip",
+          "type": "CLIP"
+        }
+      ],
+      "outputs": [
+        {
+          "links": [
+            108
+          ],
+          "name": "CONDITIONING",
+          "slot_index": 0,
+          "type": "CONDITIONING"
+        }
+      ],
+      "title": "Prompt (Negative)",
+      "properties": {
+        "Node name for S&R": "CLIPTextEncode"
+      },
+      "widgets_values": [
+        ""
+      ],
+      "color": "#322",
+      "bgcolor": "#533"
+    },
+    {
+      "id": 8,
+      "type": "VAEDecode",
+      "pos": [
+        2040,
+        840
+      ],
+      "size": [
+        200,
+        50
+      ],
+      "flags": {},
+      "order": 12,
+      "mode": 0,
+      "inputs": [
+        {
+          "link": 98,
+          "name": "samples",
+          "type": "LATENT"
+        },
+        {
+          "link": 68,
+          "name": "vae",
+          "slot_index": 1,
+          "type": "VAE"
+        }
+      ],
+      "outputs": [
+        {
+          "links": [
+            115
+          ],
+          "name": "IMAGE",
+          "slot_index": 0,
+          "type": "IMAGE"
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "VAEDecode"
+      }
+    },
+    {
+      "id": 34,
+      "type": "StableCascade_EmptyLatentImage",
+      "pos": [
+        1270,
+        860
+      ],
+      "size": {
+        "0": 315,
+        "1": 150
+      },
+      "flags": {},
+      "order": 0,
+      "mode": 0,
+      "outputs": [
+        {
+          "links": [
+            82
+          ],
+          "name": "stage_c",
+          "shape": 3,
+          "slot_index": 0,
+          "type": "LATENT"
+        },
+        {
+          "links": [
+            83
+          ],
+          "name": "stage_b",
+          "shape": 3,
+          "slot_index": 1,
+          "type": "LATENT"
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "StableCascade_EmptyLatentImage"
+      },
+      "widgets_values": [
+        1280,
+        1280,
+        42,
+        4
+      ]
+    },
+    {
+      "id": 6,
+      "type": "CLIPTextEncode",
+      "pos": [
+        1160,
+        440
+      ],
+      "size": {
+        "0": 422.84503173828125,
+        "1": 164.31304931640625
+      },
+      "flags": {},
+      "order": 6,
+      "mode": 0,
+      "inputs": [
+        {
+          "link": 93,
+          "name": "clip",
+          "type": "CLIP"
+        }
+      ],
+      "outputs": [
+        {
+          "links": [
+            107,
+            109
+          ],
+          "name": "CONDITIONING",
+          "slot_index": 0,
+          "type": "CONDITIONING"
+        }
+      ],
+      "title": "Prompt",
+      "properties": {
+        "Node name for S&R": "CLIPTextEncode"
+      },
+      "widgets_values": [
+        "a happy panda holding a sign that says \"Hello\""
+      ],
+      "color": "#232",
+      "bgcolor": "#353"
+    },
+    {
+      "id": 32,
+      "type": "UNETLoader",
+      "pos": [
+        840,
+        260
+      ],
+      "size": {
+        "0": 315,
+        "1": 58
+      },
+      "flags": {},
+      "order": 1,
+      "mode": 0,
+      "outputs": [
+        {
+          "links": [
+            114
+          ],
+          "name": "MODEL",
+          "shape": 3,
+          "slot_index": 0,
+          "type": "MODEL"
+        }
+      ],
+      "title": "UNETLoader (Stage B)",
+      "properties": {
+        "Node name for S&R": "UNETLoader"
+      },
+      "widgets_values": [
+        "stage_b_bf16.safetensors"
+      ]
+    },
+    {
+      "id": 30,
+      "type": "UNETLoader",
+      "pos": [
+        840,
+        350
+      ],
+      "size": {
+        "0": 315,
+        "1": 58
+      },
+      "flags": {},
+      "order": 2,
+      "mode": 0,
+      "outputs": [
+        {
+          "links": [
+            110
+          ],
+          "name": "MODEL",
+          "shape": 3,
+          "slot_index": 0,
+          "type": "MODEL"
+        }
+      ],
+      "title": "UNETLoader (Stage C)",
+      "properties": {
+        "Node name for S&R": "UNETLoader"
+      },
+      "widgets_values": [
+        "stage_c_bf16.safetensors"
+      ]
+    },
+    {
+      "id": 37,
+      "type": "CLIPLoader",
+      "pos": [
+        840,
+        440
+      ],
+      "size": {
+        "0": 315,
+        "1": 82
+      },
+      "flags": {},
+      "order": 3,
+      "mode": 0,
+      "outputs": [
+        {
+          "links": [
+            93,
+            94
+          ],
+          "name": "CLIP",
+          "shape": 3,
+          "slot_index": 0,
+          "type": "CLIP"
+        }
+      ],
+      "title": "Load CLIP (Text Encoder)",
+      "properties": {
+        "Node name for S&R": "CLIPLoader"
+      },
+      "widgets_values": [
+        "model.safetensors",
+        "stable_cascade"
+      ]
+    },
+    {
+      "id": 3,
+      "type": "KSampler",
+      "pos": [
+        1600,
+        440
+      ],
+      "size": [
+        310,
+        260
+      ],
+      "flags": {},
+      "order": 9,
+      "mode": 0,
+      "inputs": [
+        {
+          "link": 111,
+          "name": "model",
+          "slot_index": 0,
+          "type": "MODEL"
+        },
+        {
+          "link": 107,
+          "name": "positive",
+          "type": "CONDITIONING"
+        },
+        {
+          "link": 108,
+          "name": "negative",
+          "type": "CONDITIONING"
+        },
+        {
+          "link": 82,
+          "name": "latent_image",
+          "type": "LATENT"
+        }
+      ],
+      "outputs": [
+        {
+          "links": [
+            88
+          ],
+          "name": "LATENT",
+          "slot_index": 0,
+          "type": "LATENT"
+        }
+      ],
+      "title": "KSampler (Stage C)",
+      "properties": {
+        "Node name for S&R": "KSampler"
+      },
+      "widgets_values": [
+        1337,
+        "fixed",
+        20,
+        4,
+        "euler_ancestral",
+        "simple",
+        1
+      ]
+    },
+    {
+      "id": 33,
+      "type": "KSampler",
+      "pos": [
+        1930,
+        440
+      ],
+      "size": [
+        310,
+        260
+      ],
+      "flags": {},
+      "order": 11,
+      "mode": 0,
+      "inputs": [
+        {
+          "link": 114,
+          "name": "model",
+          "slot_index": 0,
+          "type": "MODEL"
+        },
+        {
+          "link": 86,
+          "name": "positive",
+          "type": "CONDITIONING"
+        },
+        {
+          "link": 104,
+          "name": "negative",
+          "type": "CONDITIONING"
+        },
+        {
+          "link": 83,
+          "name": "latent_image",
+          "type": "LATENT"
+        }
+      ],
+      "outputs": [
+        {
+          "links": [
+            98
+          ],
+          "name": "LATENT",
+          "slot_index": 0,
+          "type": "LATENT"
+        }
+      ],
+      "title": "KSampler (Stage B)",
+      "properties": {
+        "Node name for S&R": "KSampler"
+      },
+      "widgets_values": [
+        1337,
+        "fixed",
+        10,
+        1.1,
+        "euler_ancestral",
+        "simple",
+        1
+      ]
+    },
+    {
+      "id": 29,
+      "type": "VAELoader",
+      "pos": [
+        1930,
+        740
+      ],
+      "size": [
+        310,
+        60
+      ],
+      "flags": {},
+      "order": 4,
+      "mode": 0,
+      "outputs": [
+        {
+          "links": [
+            68
+          ],
+          "name": "VAE",
+          "shape": 3,
+          "type": "VAE"
+        }
+      ],
+      "title": "Load VAE (Stage A)",
+      "properties": {
+        "Node name for S&R": "VAELoader"
+      },
+      "widgets_values": [
+        "stage_a.safetensors"
+      ]
+    },
+    {
+      "id": 44,
+      "type": "PreviewImage",
+      "pos": [
+        2250,
+        350
+      ],
+      "size": [
+        510,
+        540
+      ],
+      "flags": {},
+      "order": 13,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "images",
+          "type": "IMAGE",
+          "link": 115
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "PreviewImage"
+      }
+    }
+  ],
+  "links": [
+    [
+      68,
+      29,
+      0,
+      8,
+      1,
+      "VAE"
+    ],
+    [
+      82,
+      34,
+      0,
+      3,
+      3,
+      "LATENT"
+    ],
+    [
+      83,
+      34,
+      1,
+      33,
+      3,
+      "LATENT"
+    ],
+    [
+      86,
+      36,
+      0,
+      33,
+      1,
+      "CONDITIONING"
+    ],
+    [
+      88,
+      3,
+      0,
+      36,
+      1,
+      "LATENT"
+    ],
+    [
+      93,
+      37,
+      0,
+      6,
+      0,
+      "CLIP"
+    ],
+    [
+      94,
+      37,
+      0,
+      7,
+      0,
+      "CLIP"
+    ],
+    [
+      98,
+      33,
+      0,
+      8,
+      0,
+      "LATENT"
+    ],
+    [
+      104,
+      40,
+      0,
+      33,
+      2,
+      "CONDITIONING"
+    ],
+    [
+      105,
+      40,
+      0,
+      36,
+      0,
+      "CONDITIONING"
+    ],
+    [
+      107,
+      6,
+      0,
+      3,
+      1,
+      "CONDITIONING"
+    ],
+    [
+      108,
+      7,
+      0,
+      3,
+      2,
+      "CONDITIONING"
+    ],
+    [
+      109,
+      6,
+      0,
+      40,
+      0,
+      "CONDITIONING"
+    ],
+    [
+      110,
+      30,
+      0,
+      42,
+      0,
+      "MODEL"
+    ],
+    [
+      111,
+      42,
+      0,
+      3,
+      0,
+      "MODEL"
+    ],
+    [
+      114,
+      32,
+      0,
+      33,
+      0,
+      "MODEL"
+    ],
+    [
+      115,
+      8,
+      0,
+      44,
+      0,
+      "IMAGE"
+    ]
+  ],
+  "groups": [],
+  "config": {},
+  "extra": {
+    "0246.VERSION": [
+      0,
+      0,
+      4
+    ]
+  },
+  "version": 0.4
+}

@@ -5,6 +5,8 @@ import sys
 import websocket
 import time
 from selenium import webdriver
+from selenium.webdriver.chrome.options import Options
+from selenium.webdriver.common.desired_capabilities import DesiredCapabilities
 from selenium.webdriver.common.keys import Keys
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
@@ -52,14 +54,14 @@ def run_tests(server_url):
     templates_dir = './server/templates'
     test_workflows_dir = './server/test-workflows'
 
-    # templates_json = load_json_files(templates_dir)
     test_workflows_json = load_json_files(test_workflows_dir)
-    # print(f"run_tests 2. templates_json length: {len(templates_json)}.")
-    print(f"run_tests 2. test_workflows_json length: {len(test_workflows_json)}.")
+    templates_json = load_json_files(templates_dir)
+    print(f"run_tests 2b. test_workflows_json length: {len(test_workflows_json)}.")
+    print(f"run_tests 2a. templates_json length: {len(templates_json)}.")
 
-    # all_json = templates_json + testworkflows_json
+    all_json = test_workflows_json + templates_json
 
-    for file_path, json_obj in test_workflows_json: #all_json
+    for file_path, json_obj in all_json: #all_json
         NAME = str(uuid.uuid4())
         print(f"run_tests 3. entered for loop for file_path: {file_path} and generated name: {NAME}")
         replaced_json_obj = replace_filepaths(json_obj)
@@ -85,7 +87,22 @@ def run_tests(server_url):
         print(f"run_tests 5. got response from /projects/{project_id}/start: {response}. and got port: {port}")
 
         # Use selenium
-        driver = webdriver.Chrome()
+        # URL of the Selenium Grid hub
+        # hub_url = "http://localhost:4444/wd/hub"
+
+        # Set Chrome options
+
+        # driver = webdriver.Chrome(options=chrome_options)
+        # Initialize the WebDriver with remote connection to the Selenium Grid hub
+        # driver = webdriver.Remote(command_executor=hub_url, options=chrome_options)
+
+        chrome_options = Options()
+        # chrome_options.add_argument('--headless')  # Run Chrome in headless mode
+        chrome_options.add_argument("--no-sandbox") # linux only
+        chrome_options.add_argument("--headless=new") # for Chrome >= 109
+        chrome_options.add_argument('--disable-dev-shm-usage')
+        chrome_options.add_argument('--no-options.addArguments')
+        driver = webdriver.Chrome(options=chrome_options)
         print(f"run_tests SELENIUM 1. driver instantiated!")
 
         driver.get(f"http://localhost:{port}")
