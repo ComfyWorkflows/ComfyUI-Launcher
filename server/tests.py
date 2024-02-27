@@ -63,7 +63,7 @@ def run_tests(server_url):
 
     for file_path, json_obj in all_json: #all_json
         NAME = str(uuid.uuid4())
-        print(f"run_tests 3. entered for loop for file_path: {file_path} and generated name: {NAME}")
+        print(f"🚀🚀🚀 run_tests 3. ENTERED for loop for file_path: {file_path} and generated name: {NAME}")
         replaced_json_obj = replace_filepaths(json_obj)
         print(f"run_tests 3WW. successfylly replaced filepaths fr.")
         
