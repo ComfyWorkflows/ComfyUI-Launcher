@@ -33,3 +33,11 @@ export type Project = {
     project_folder_path: string,
     last_modified: number
 }
+
+export type FailedModel = {
+    id: string, 
+    file_name: string,
+    backup_models: { id: string, file_name: string, link: string, type: string }[],
+    resolved: boolean,
+    new_file_name: string
+}
