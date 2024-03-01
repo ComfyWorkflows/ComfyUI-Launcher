@@ -13,6 +13,7 @@ import {
 import ImportWorkflowPage from './pages/import/page';
 import NewWorkflowPage from './pages/new/page';
 import SettingsPage from './pages/settings/page';
+import { Toaster } from "@/components/ui/sonner"
 
 // Create a client
 const queryClient = new QueryClient()
@@ -40,6 +41,7 @@ ReactDOM.createRoot(document.getElementById("root")!).render(
   <React.StrictMode>
     <QueryClientProvider client={queryClient}>
       <RouterProvider router={router} />
+      <Toaster />
     </QueryClientProvider>
   </React.StrictMode>
 );
