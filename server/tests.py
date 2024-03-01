@@ -53,15 +53,18 @@ def run_tests(server_url):
 
     templates_dir = './server/templates'
     test_workflows_dir = './server/test-workflows'
+    test_default_dir = './server/test-default'
 
-    test_workflows_json = load_json_files(test_workflows_dir)
-    templates_json = load_json_files(templates_dir)
-    print(f"run_tests 2b. test_workflows_json length: {len(test_workflows_json)}.")
-    print(f"run_tests 2a. templates_json length: {len(templates_json)}.")
+    # test_workflows_json = load_json_files(test_workflows_dir)
+    # templates_json = load_json_files(templates_dir)
+    test_default_json = load_json_files(test_default_dir)
+    # print(f"run_tests 2b. test_workflows_json length: {len(test_workflows_json)}.")
+    # print(f"run_tests 2a. templates_json length: {len(templates_json)}.")
+    print(f"run_tests 2a. test_default_json length: {len(test_default_json)}.")
 
-    all_json = test_workflows_json + templates_json
+    # all_json = test_workflows_json + templates_json
 
-    for file_path, json_obj in all_json: #all_json
+    for file_path, json_obj in test_default_json: #all_json
         NAME = str(uuid.uuid4())
         print(f"🚀🚀🚀 run_tests 3. ENTERED for loop for file_path: {file_path} and generated name: {NAME}")
         replaced_json_obj = replace_filepaths(json_obj)
@@ -95,6 +98,7 @@ def run_tests(server_url):
         # driver = webdriver.Chrome(options=chrome_options)
         # Initialize the WebDriver with remote connection to the Selenium Grid hub
         # driver = webdriver.Remote(command_executor=hub_url, options=chrome_options)
+        
 
         chrome_options = Options()
         # chrome_options.add_argument('--headless')  # Run Chrome in headless mode
@@ -112,6 +116,8 @@ def run_tests(server_url):
         WebDriverWait(driver, 15).until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
         print(f"run_tests SELENIUM 3. driver got to http://localhost:{port} and is in ready state.")
 
+        time.sleep(20)
+
         # Switch to the iframe
         iframe = driver.find_element(By.TAG_NAME, 'iframe')
         driver.switch_to.frame(iframe)
@@ -125,28 +131,30 @@ def run_tests(server_url):
         driver.find_element(By.ID, 'queue-button').click()
         print(f"run_tests SELENIUM 6. driver clicked queue-button element inside the iframe.")
 
-        time.sleep(5)
-        driver.quit()
-        print(f"run_tests SELENIUM 7 (quit selenium driver).")
-
-        # Get request to http://localhost:<port>/queue
-        response = requests.get(f"http://localhost:{port}/queue")
-        print(f"run_tests 6. made request to comfyui queue got response from http://localhost:{port}/queue: {response}.")
-        queue_data = response.json()
-        print(f"run_tests 7. queue_data from http://localhost:{port}/queue: {queue_data}.")
-
-        queue_running = queue_data.get("queue_running", [])
-        print(f"run_tests 8. queue_running from http://localhost:{port}/queue: {queue_running}.")
-
+        MAX_ATTEMPTS = 120
+        attempts = 0
         client_id = None
         prompt_id = None
-
-        if queue_running:
-            print(f"run_tests 9. queue_running is not empty!")
-            prompt_id = queue_running[0][1]
-            client_id = queue_running[0][3].get("client_id")
-        print(f"run_tests 10. got client_id from http://localhost:{port}/queue:: {client_id}")
-        print(f"run_tests 11. got prompt_id from http://localhost:{port}/queue:: {prompt_id}")
+        while attempts <= MAX_ATTEMPTS and client_id is None and prompt_id is None:
+            attempts += 1
+            # Get request to http://localhost:<port>/queue
+            response = requests.get(f"http://localhost:{port}/queue")
+            print(f"run_tests 6. made request to comfyui queue got response from http://localhost:{port}/queue: {response}.")
+            queue_data = response.json()
+            print(f"run_tests 7. queue_data from http://localhost:{port}/queue: {queue_data}.")
+            queue_running = queue_data.get("queue_running", [])
+            print(f"run_tests 8. queue_running from http://localhost:{port}/queue: {queue_running}.")
+            if queue_running:
+                print(f"run_tests 9. queue_running is not empty!")
+                prompt_id = queue_running[0][1]
+                client_id = queue_running[0][3].get("client_id")
+                break
+            print(f"run_tests 10. got client_id from http://localhost:{port}/queue:: {client_id}")
+            print(f"run_tests 11. got prompt_id from http://localhost:{port}/queue:: {prompt_id}")
+            time.sleep(1)
+        
+        driver.quit()
+        print(f"run_tests SELENIUM 7 (quit selenium driver).")
 
         if not client_id or not prompt_id:
             print(f"run_tests F. either prompt_id ({prompt_id}) or client_id({client_id}) is null!")
