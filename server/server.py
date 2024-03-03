@@ -6,6 +6,7 @@ import time
 from flask import Flask, jsonify, request, render_template
 from showinfm import show_in_file_manager
 from settings import PROJECTS_DIR, MODELS_DIR, TEMPLATES_DIR
+import requests
 import os, psutil, sys
 from utils import (
     CONFIG_FILEPATH,
@@ -23,6 +24,7 @@ from utils import (
     set_launcher_state_data,
     slugify,
     update_config,
+    check_url_structure
 )
 
 CW_ENDPOINT = os.environ.get("CW_ENDPOINT", "https://comfyworkflows.com")
@@ -131,10 +133,11 @@ def create_project():
 
 @app.route("/api/import_project", methods=["POST"])
 def import_project():
-    import requests
     request_data = request.get_json()
     name = request_data["name"]
     import_json = request_data["import_json"]
+    resolved_missing_models = request_data["resolved_missing_models"]
+    skipping_model_validation = request_data["skipping_model_validation"]
 
     # set id to a folder friendly name of the project name (lowercase, no spaces, etc.)
     id = slugify(name)
@@ -150,18 +153,27 @@ def import_project():
     else:
         print("Detected workflow json format, converting to launcher json format")
         #only resolve missing models for workflows w/ workflow json format
-        response = requests.post(
-            f"{CW_ENDPOINT}/api/comfyui-launcher/resolve_missing_models",
-            json={"workflow": import_json},
-        )
-        assert (
-            response.status_code == 200
-        ), f"Failed to get missing models res for workflow: {import_json}"
-        json = response.json()
-        missing_models = json["missing_models"]
-        if len(missing_models) > 0:
-            return jsonify({ "success": False, "missing_models": missing_models })
-        launcher_json = get_launcher_json_for_workflow_json(import_json)
+        skip_model_validation = True if skipping_model_validation else False
+        if len(resolved_missing_models) > 0:
+            for model in resolved_missing_models:
+                if (model["filename"] is None or model["node_type"] is None):
+                    return jsonify({ "success": False, "error": f"one of the resolved models has an empty filename or node type. please try again." })
+                elif (model["source"]["url"] is not None and model["source"]["file_id"] is None):
+                    is_valid = check_url_structure(model["source"]["url"])
+                    if (is_valid is False):
+                        return jsonify({ "success": False, "error": f"the url f{model['source']['url']} is invalid. please make sure it is a link to a model file on huggingface or a civitai model." })
+                elif (model["source"]["file_id"] is None and model["source"]["url"] is None):
+                    return jsonify({ "success": False, "error": f"you didn't select one of the suggestions (or import a url) for the following missing file: {model['filename']}" })
+            skip_model_validation = True
+                
+        res = get_launcher_json_for_workflow_json(import_json, resolved_missing_models, skip_model_validation)
+        if (res["success"] and res["launcher_json"]):
+            launcher_json = res["launcher_json"]
+        elif (res["success"] is False and res["error"] == "MISSING_MODELS" and len(res["missing_models"]) > 0):
+            return jsonify({ "success": False, "missing_models": res["missing_models"] })
+        else:
+            print(f"something went wrong when fetching res from get_launcher_json_for_workflow_json: {res}")
+            return
     create_comfyui_project(
         project_path, models_path, id=id, name=name, launcher_json=launcher_json
     )
