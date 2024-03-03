@@ -133,6 +133,7 @@ function MissingModelItem({ missingModel, resolveMutationToUse, unResolveMutatio
                                     const mutation = await resolveMutationToUse.mutateAsync({ filename: missingModel.filename, node_type: missingModel.node_type, source: { type: modelURLToImport.startsWith('https://huggingface.co/') ? "hf" : "civitai",  file_id: null, url: modelURLToImport } })
                                     // resolveMutationToUse.mutate({ filename: missingModel.filename, node_type: missingModel.node_type, source: { type: modelURLToImport.startsWith('https://huggingface.co/') ? "hf" : "civitai",  file_id: null, url: modelURLToImport } })
                                     console.log("mutation:", mutation);
+                                    setNewFileName(modelURLToImport);
                                     setResolved(true);
                                 } catch (error) {
                                     toast.error("there was an error importing the url, please try again!")
