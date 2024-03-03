@@ -25,6 +25,8 @@ from utils import (
     update_config,
 )
 
+CW_ENDPOINT = os.environ.get("CW_ENDPOINT", "https://comfyworkflows.com")
+
 app = Flask(
     __name__, static_url_path="", static_folder="../web/dist", template_folder="../web/dist"
 )
@@ -129,112 +131,41 @@ def create_project():
 
 @app.route("/api/import_project", methods=["POST"])
 def import_project():
-    MISSING_MODELS = [
-        {
-            "id": "1",
-            "file_name": "ip_adapter_image_encoder_pytorch_model.bin",
-            "backup_models": [
-                {
-                "id": "1",
-                "file_name": "ip_adapter_v4.safetensors",
-                "link": "https://huggingface.co/h94/IP-Adapter-FaceID",
-                "type": "hf"
-                },
-                {
-                    "id": "2",
-                    "file_name": "ip_adapter_still.safetensors",
-                    "link": "https://huggingface.co/h94/IP-Adapter-FaceID",
-                    "type": "hf"
-                },
-                {
-                    "id": "3",
-                    "file_name": "ip_adapter_goofy.safetensors",
-                    "link": "https://huggingface.co/h94/IP-Adapter-FaceID",
-                    "type": "hf"
-                },
-                {
-                    "id": "4",
-                    "file_name": "image_encoder_adapter.safetensors",
-                    "link": "https://huggingface.co/h94/IP-Adapter-FaceID",
-                    "type": "hf"
-                }
-            ],
-            "resolved": False,
-            "new_file_name": ""
-        },
-        {
-            "id": "2",
-            "file_name": "nooshpere_4.7.safetensors",
-            "backup_models": [
-                {
-                    "id": "1",
-                    "file_name": "nooshpere_animations.safetensors",
-                    "link": "https://huggingface.co/h94/IP-Adapter-FaceID",
-                    "type": "hf"
-                },
-                {
-                    "id": "2",
-                    "file_name": "noosphere_direct.safetensors",
-                    "link": "https://huggingface.co/h94/IP-Adapter-FaceID",
-                    "type": "hf"
-                },
-                {
-                    "id": "3",
-                    "file_name": "noosphere_v_1_5.ckpt",
-                    "link": "https://huggingface.co/h94/IP-Adapter-FaceID",
-                    "type": "hf"
-                }
-            ],
-            "resolved": False,
-            "new_file_name": ""
-        },
-        {
-            "id": "3",
-            "file_name": "3Dmeinamix_meinaV11.safetensors'",
-            "backup_models": [
-                {
-                    "id": "1",
-                    "file_name": "meinamix.safetensors",
-                    "link": "https://huggingface.co/h94/IP-Adapter-FaceID",
-                    "type": "hf"
-                },
-                {
-                    "id": "2",
-                    "file_name": "meinav11.safetensors",
-                    "link": "https://huggingface.co/h94/IP-Adapter-FaceID",
-                    "type": "hf"
-                }
-            ],
-            "resolved": False,
-            "new_file_name": ""
-        }
-    ]
-    time.sleep(5)
-    # request_data = request.get_json()
-    # name = request_data["name"]
-    # import_json = request_data["import_json"]
+    import requests
+    request_data = request.get_json()
+    name = request_data["name"]
+    import_json = request_data["import_json"]
 
-    # # set id to a folder friendly name of the project name (lowercase, no spaces, etc.)
-    # id = slugify(name)
+    # set id to a folder friendly name of the project name (lowercase, no spaces, etc.)
+    id = slugify(name)
 
-    # project_path = os.path.join(PROJECTS_DIR, id)
-    # assert not os.path.exists(project_path), f"Project with id {id} already exists"
+    project_path = os.path.join(PROJECTS_DIR, id)
+    assert not os.path.exists(project_path), f"Project with id {id} already exists"
 
-    # models_path = MODELS_DIR
+    models_path = MODELS_DIR
 
-    # if is_launcher_json_format(import_json):
-    #     print("Detected launcher json format")
-    #     launcher_json = import_json
-    # else:
-    #     print("Detected workflow json format, converting to launcher json format")
-    #     launcher_json = get_launcher_json_for_workflow_json(import_json)
-    # create_comfyui_project(
-    #     project_path, models_path, id=id, name=name, launcher_json=launcher_json
-    # )
-    # if there were some models that could not be found, 
-    # return success = false and an array of FailedModel objects (defined in web types)
-    # return jsonify({"success": True, "id": id}) 
-    return jsonify({"success": False, "missing_models": MISSING_MODELS })
+    if is_launcher_json_format(import_json):
+        print("Detected launcher json format")
+        launcher_json = import_json
+    else:
+        print("Detected workflow json format, converting to launcher json format")
+        #only resolve missing models for workflows w/ workflow json format
+        response = requests.post(
+            f"{CW_ENDPOINT}/api/comfyui-launcher/resolve_missing_models",
+            json={"workflow": import_json},
+        )
+        assert (
+            response.status_code == 200
+        ), f"Failed to get missing models res for workflow: {import_json}"
+        json = response.json()
+        missing_models = json["missing_models"]
+        if len(missing_models) > 0:
+            return jsonify({ "success": False, "missing_models": missing_models })
+        launcher_json = get_launcher_json_for_workflow_json(import_json)
+    create_comfyui_project(
+        project_path, models_path, id=id, name=name, launcher_json=launcher_json
+    )
+    return jsonify({"success": True, "id": id}) 
 
 
 @app.route("/api/projects/<id>/start", methods=["POST"])

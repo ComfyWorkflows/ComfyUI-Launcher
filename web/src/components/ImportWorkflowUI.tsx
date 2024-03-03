@@ -6,9 +6,9 @@ import { Button } from './ui/button';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from './ui/dialog';
 import { Input } from './ui/input';
-import { Loader2Icon, AlertTriangle, Replace, CheckCircle, Package } from 'lucide-react';
+import { Loader2Icon, AlertTriangle, Replace, CheckCircle, File } from 'lucide-react';
 import { useNavigate } from "react-router-dom";
-import { FailedModel } from '@/lib/types';
+import { MissingModel } from '@/lib/types';
 import {
     Card,
     CardContent,
@@ -21,6 +21,8 @@ import { Separator } from "@/components/ui/separator"
 import { Label } from "@/components/ui/label"
 import { toast } from "sonner"
 import ImportURLUI from './ImportURLUI';
+import HFLogo from './HFLogo';
+import { Badge } from "@/components/ui/badge"
 
 
 // const CW_ENDPOINT = "https://comfyworkflows.com"
@@ -149,7 +151,7 @@ function ImportWorkflowUI() {
     const [importProjectDialogOpen, setImportProjectDialogOpen] = React.useState(false)
     const [projectStatusDialogOpen, setProjectStatusDialogOpen] = React.useState(false)
 
-    const [missingModels, setMissingModels] = React.useState<FailedModel[]>([]);
+    const [missingModels, setMissingModels] = React.useState<MissingModel[]>([]);
     const [resolvingModelWithID, setResolvingModelWithId] = React.useState("");
     const [skippingMissingModelsWarningOpen, setSkippingMissingModelsWarningOpen] = useState(false);
     const [skippedMissingModels, setSkippedMissingModels] = useState(false);
@@ -427,14 +429,14 @@ function ImportWorkflowUI() {
                         <CardDescription>{resolvedAllModels ? 'Please try importing again.' : 'We could not find the folloiwng models from the workflow you tried to import. Replace missing models with the models that are available to avoid getting errors.'}</CardDescription>
                     </CardHeader>
                     <CardContent className="flex flex-col gap-6">
-                        {missingModels.map((failed_model) => { //iterate through missingModels instead
-                            if (!failed_model.resolved) {
+                        {missingModels.map((missing_model) => { //iterate through missingModels instead
+                            if (!missing_model.resolved) {
                                 return (
                                     <div className='w-full flex flex-col items-start gap-4'>
                                         <div className='w-full flex flex-row items-center justify-between'>
                                             <div className='flex flex-row items-center gap-2'>
-                                                {resolvingModelWithID === failed_model.id ? <Loader2Icon className=' text-orange-500 animate-spin w-4 h-4' /> : <AlertTriangle className='w-4 h-4 text-red-500' />}
-                                                <h3 className='text-white font-bold'>{failed_model.file_name}</h3>
+                                                {resolvingModelWithID === missing_model.id ? <Loader2Icon className=' text-orange-500 animate-spin w-4 h-4' /> : <AlertTriangle className='w-4 h-4 text-red-500' />}
+                                                <h3 className='text-white font-bold'>{missing_model.filename}</h3>
                                             </div>
                                         </div>
                                         <div className='w-full flex flex-col items-start gap-4'>
@@ -443,28 +445,25 @@ function ImportWorkflowUI() {
                                                     <Replace className='w-4 h-4 text-green-400' />
                                                     <p className='text-white font-semibold'>Replace with</p>
                                                 </div>
-                                                {failed_model.backup_models.map((backup_model) => {
+                                                {missing_model.suggestions.map((suggestion) => {
                                                     return (
-                                                        <div className='w-full flex flex-row items-center justify-between my-1'>
+                                                        <div key={suggestion.hf_file_id || suggestion.civitai_file_id} className='w-full flex flex-row items-center justify-between my-1'>
                                                             <div className='flex flex-row items-center space-x-2'>
-                                                                <Package className='text-white w-4 h-4' />
-                                                                <p className='text-white'>{backup_model.file_name}</p>
+                                                                {suggestion.source === "civitai" ? <img alt={`civitai logo for model ${suggestion.filename}`} src='/civitai-logo-github.png' className='ph-no-capture w-5 h-5' /> : <HFLogo className='w-5 h-5' />}
+                                                                <p className='text-white'>{suggestion.filename}</p>
+                                                                {suggestion.filepath && 
+                                                                <Badge className='flex flex-row items-center gap-2'>
+                                                                    <File className='w-4 h-4' />
+                                                                    {suggestion.filepath}
+                                                                </Badge>}
                                                             </div>
                                                             <div className='flex flex-row items-center gap-2'>
-                                                                <a href={backup_model.link} target='none'>
-                                                                    <Button
-                                                                    size='sm'
-                                                                    className=''
-                                                                    >
-                                                                    View
-                                                                    </Button>
-                                                                </a>
                                                                 <Button
                                                                 size='sm'
                                                                 className=''
                                                                 onClick={(e) => {
                                                                     e.preventDefault();
-                                                                    resolveMissingModelMutationWithBackup.mutate({ id_to_resolve: failed_model.id, backup_to_use: backup_model.id })
+                                                                    resolveMissingModelMutationWithBackup.mutate({ id_to_resolve: missing_model.id, backup_to_use: backup_model.id })
                                                                 }}
                                                                 >
                                                                     Use this model
@@ -474,7 +473,7 @@ function ImportWorkflowUI() {
                                                     )
                                                 })}
                                             </div>
-                                            <ImportURLUI failed_model_id={failed_model.id} mutationToUse={resolveMissingModelMutationWithURL} />
+                                            <ImportURLUI failed_model_id={missing_model.id} mutationToUse={resolveMissingModelMutationWithURL} />
                                         </div>
                                         <Separator className='bg-[#444]' />
                                     </div>
