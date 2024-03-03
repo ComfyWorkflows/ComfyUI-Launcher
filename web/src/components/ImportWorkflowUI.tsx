@@ -72,9 +72,10 @@ function ImportWorkflowUI() {
     const [skippingMissingModelsWarningOpen, setSkippingMissingModelsWarningOpen] = useState(false);
     const [skippedMissingModels, setSkippedMissingModels] = useState(false);
     const [resolvedAllModels, setResolvedAllModels] = useState(false);
+    const [confirmOnlyPartiallyResolvingOpen, setConfirmOnlyPartiallyResolvingOpen] = useState(false);
 
     const importProjectMutation = useMutation({
-        mutationFn: async ({ import_json, name }: { import_json: string, name: string }) => {
+        mutationFn: async ({ import_json, name, partiallyResolved }: { import_json: string, name: string, partiallyResolved?: boolean }) => {
             const final_import_json = JSON.parse(import_json)
             const uniqueFilenames = new Set();
             const uniqueResolvedMissingModels = resolvedMissingModels.filter((model) => {
@@ -89,7 +90,7 @@ function ImportWorkflowUI() {
                 headers: {
                     'Content-Type': 'application/json'
                 },
-                body: JSON.stringify({ import_json: final_import_json, resolved_missing_models: uniqueResolvedMissingModels, skipping_model_validation: skippedMissingModels, name })
+                body: JSON.stringify({ import_json: final_import_json, resolved_missing_models: uniqueResolvedMissingModels, skipping_model_validation: skippedMissingModels || partiallyResolved, name })
             })
             const data = await response.json()
             if (!data.success && data.missing_models?.length > 0) {
@@ -142,7 +143,7 @@ function ImportWorkflowUI() {
                 // const itemToRemove = { filename: "example", node_type: "example" };
                 // const updatedSet = new Set([...resolvedMissingModels].filter(item => item !== itemToRemove));
                 // setResolvedMissingModels(updatedSet);
-                setResolvedMissingModels(resolvedMissingModels.filter((missingModel) => missingModel.filename === filename));
+                setResolvedMissingModels(resolvedMissingModels.filter((missingModel) => missingModel.filename !== filename));
             } catch (error: unknown) {
                 toast.error("something went wrong when attempting to edit your model. please try again.");
                 return;
@@ -293,6 +294,30 @@ function ImportWorkflowUI() {
                 </DialogContent>
             </Dialog>
 
+            <Dialog onOpenChange={(open) => setConfirmOnlyPartiallyResolvingOpen(open)} open={confirmOnlyPartiallyResolvingOpen}>
+                <DialogContent className="sm:max-w-[425px]">
+                    <DialogHeader>
+                        <DialogTitle>You've only partially resolved the missing models, are you sure you want to continue?</DialogTitle>
+                        <DialogDescription>You will probably face errors when running the workflow in ComfyUI and might have to upload replacement models to run the workflow.</DialogDescription>
+                    </DialogHeader>
+                    <DialogFooter>
+                        <Button onClick={(e) => {
+                            e.preventDefault();
+                            setConfirmOnlyPartiallyResolvingOpen(false);
+                        }}>
+                            Cancel
+                        </Button>
+                        <Button onClick={(e) => {
+                            e.preventDefault();
+                            if (!importJson) return;
+                            importProjectMutation.mutate({ import_json: importJson, name: projectName, partiallyResolved: true })
+                        }}>
+                            Yes, import
+                        </Button>
+                    </DialogFooter>
+                </DialogContent>
+            </Dialog>
+
 
             <div className="flex flex-col p-10">
                 <div className='flex flex-col'>
@@ -342,10 +367,14 @@ function ImportWorkflowUI() {
 
 
                 <div className='mt-5'>
-                    <Button variant="default" disabled={!importJson || (missingModels.length > 0 && !resolvedAllModels && !skippedMissingModels)} onClick={(e) => {
+                    <Button variant="default" disabled={!importJson || (missingModels.length > 0 && resolvedMissingModels.length === 0 && !skippedMissingModels)} onClick={(e) => {
                         e.preventDefault();
                         if (!importJson) return;
-                        setImportProjectDialogOpen(true);
+                        if (missingModels.length > 0 && !resolvedAllModels) {
+                            setConfirmOnlyPartiallyResolvingOpen(true);
+                        } else {
+                            setImportProjectDialogOpen(true);
+                        }
                     }}>Import</Button>
                 </div>
             </div>
