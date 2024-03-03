@@ -34,10 +34,19 @@ export type Project = {
     last_modified: number
 }
 
-export type FailedModel = {
-    id: string, 
-    file_name: string,
-    backup_models: { id: string, file_name: string, link: string, type: string }[],
-    resolved: boolean,
-    new_file_name: string
+export type Suggestion = {
+    filename: string,
+    source: "hf" | "civitai",
+    filepath: string,
+    hf_file_id: number | null,
+    civitai_file_id: number | null
+}
+
+export type MissingModel = {
+    filename: string,
+    node_type: string,
+    suggestions: Suggestion[]
+    // backup_models: { id: string, file_name: string, link: string, type: string }[],
+    // resolved: boolean,
+    // new_file_name: string
 }
