@@ -11,6 +11,19 @@ import threading
 from tqdm import tqdm
 from urllib.parse import urlparse
 
+def check_url_structure(url):
+    # Check for huggingface.co URL structure
+    huggingface_pattern = r'^https://huggingface\.co/[\w-]+/[\w-]+/blob/[\w-]+\.(safetensors|bin|ckpt)$'
+    if re.match(huggingface_pattern, url):
+        return True
+    
+    # Check for civitai.com URL structure
+    civitai_pattern = r'^https://civitai\.com/models/\d+$'
+    if re.match(civitai_pattern, url):
+        return True
+    
+    return False
+
 def slugify(value, allow_unicode=False):
     """
     Taken from https://github.com/django/django/blob/master/django/utils/text.py
@@ -338,10 +351,10 @@ def setup_files_from_launcher_json(project_folder_path, launcher_json):
     return missing_download_files
 
 
-def get_launcher_json_for_workflow_json(workflow_json):
+def get_launcher_json_for_workflow_json(workflow_json, resolved_missing_models, skip_model_validation):
     response = requests.post(
-        f"{CW_ENDPOINT}/api/comfyui-launcher/setup_workflow_json",
-        json={"workflow": workflow_json, "isWindows": os.name == "nt"},
+        f"{CW_ENDPOINT}/api/comfyui-launcher/setup_workflow_json?skipModelValidation={skip_model_validation}",
+        json={"workflow": workflow_json, "isWindows": os.name == "nt", "resolved_missing_models": resolved_missing_models},
     )
     assert (
         response.status_code == 200

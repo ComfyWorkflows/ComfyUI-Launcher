@@ -6,9 +6,9 @@ import { Button } from './ui/button';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from './ui/dialog';
 import { Input } from './ui/input';
-import { Loader2Icon, AlertTriangle, Replace, CheckCircle, File } from 'lucide-react';
+import { Loader2Icon } from 'lucide-react';
 import { useNavigate } from "react-router-dom";
-import { MissingModel } from '@/lib/types';
+import { MissingModel, ResolvedMissingModelFile, Source } from '@/lib/types';
 import {
     Card,
     CardContent,
@@ -17,15 +17,10 @@ import {
     CardHeader,
     CardTitle,
 } from "@/components/ui/card"
-import { Separator } from "@/components/ui/separator"
 import { Label } from "@/components/ui/label"
 import { toast } from "sonner"
-import ImportURLUI from './ImportURLUI';
-import HFLogo from './HFLogo';
-import { Badge } from "@/components/ui/badge"
+import MissingModelItem from './MissingModelItem';
 
-
-// const CW_ENDPOINT = "https://comfyworkflows.com"
 
 const baseStyle = {
     flex: 1,
@@ -55,86 +50,6 @@ const rejectStyle = {
     borderColor: '#ff1744'
 };
 
-// const failed_models: FailedModel[] = [
-//     {
-//         id: "1",
-//         file_name: "ip_adapter_image_encoder_pytorch_model.bin",
-//         backup_models: [
-//             {
-//                id: "1",
-//                file_name: "ip_adapter_v4.safetensors",
-//                link: "https://huggingface.co/h94/IP-Adapter-FaceID",
-//                type: "hf" 
-//             },
-//             {
-//                 id: "2",
-//                 file_name: "ip_adapter_still.safetensors",
-//                 link: "https://huggingface.co/h94/IP-Adapter-FaceID",
-//                 type: "hf" 
-//             },
-//             {
-//                 id: "3",
-//                 file_name: "ip_adapter_goofy.safetensors",
-//                 link: "https://huggingface.co/h94/IP-Adapter-FaceID",
-//                 type: "hf" 
-//             },
-//             {
-//                 id: "4",
-//                 file_name: "image_encoder_adapter.safetensors",
-//                 link: "https://huggingface.co/h94/IP-Adapter-FaceID",
-//                 type: "hf" 
-//             }
-//         ],
-//         resolved: true,
-//         new_file_name: "ip_adapter_v4.safetensors"
-//     },
-//     {
-//         id: "2",
-//         file_name: "nooshpere_4.7.safetensors",
-//         backup_models: [
-//             {
-//                 id: "1",
-//                 file_name: "nooshpere_animations.safetensors",
-//                 link: "https://huggingface.co/h94/IP-Adapter-FaceID",
-//                 type: "hf" 
-//             },
-//             {
-//                 id: "2",
-//                 file_name: "noosphere_direct.safetensors",
-//                 link: "https://huggingface.co/h94/IP-Adapter-FaceID",
-//                 type: "hf" 
-//             },
-//             {
-//                 id: "3",
-//                 file_name: "noosphere_v_1_5.ckpt",
-//                 link: "https://huggingface.co/h94/IP-Adapter-FaceID",
-//                 type: "hf" 
-//             }
-//         ],
-//         resolved: false,
-//         new_file_name: ""
-//     },
-//     {
-//         id: "3",
-//         file_name: "3Dmeinamix_meinaV11.safetensors'",
-//         backup_models: [
-//             {
-//                 id: "1",
-//                 file_name: "meinamix.safetensors",
-//                 link: "https://huggingface.co/h94/IP-Adapter-FaceID",
-//                 type: "hf" 
-//             },
-//             {
-//                 id: "2",
-//                 file_name: "meinav11.safetensors",
-//                 link: "https://huggingface.co/h94/IP-Adapter-FaceID",
-//                 type: "hf" 
-//             }
-//         ],
-//         resolved: false,
-//         new_file_name: ""
-//     }
-// ]
 
 function ImportWorkflowUI() {
     const [isServerSide, setIsServerSide] = React.useState(true)
@@ -152,7 +67,8 @@ function ImportWorkflowUI() {
     const [projectStatusDialogOpen, setProjectStatusDialogOpen] = React.useState(false)
 
     const [missingModels, setMissingModels] = React.useState<MissingModel[]>([]);
-    const [resolvingModelWithID, setResolvingModelWithId] = React.useState("");
+    const [resolvedMissingModels, setResolvedMissingModels] = React.useState<ResolvedMissingModelFile[]>([]);
+    // const [resolvedMissingModels, setResolvedMissingModels] = React.useState(new Set<ResolvedMissingModelFile>());
     const [skippingMissingModelsWarningOpen, setSkippingMissingModelsWarningOpen] = useState(false);
     const [skippedMissingModels, setSkippedMissingModels] = useState(false);
     const [resolvedAllModels, setResolvedAllModels] = useState(false);
@@ -160,17 +76,27 @@ function ImportWorkflowUI() {
     const importProjectMutation = useMutation({
         mutationFn: async ({ import_json, name }: { import_json: string, name: string }) => {
             const final_import_json = JSON.parse(import_json)
+            const uniqueFilenames = new Set();
+            const uniqueResolvedMissingModels = resolvedMissingModels.filter((model) => {
+                if (uniqueFilenames.has(model.filename)) {
+                    return false;
+                }
+                uniqueFilenames.add(model.filename);
+                return true;
+            });
             const response = await fetch(`/api/import_project`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json'
                 },
-                body: JSON.stringify({ import_json: final_import_json, name })
+                body: JSON.stringify({ import_json: final_import_json, resolved_missing_models: uniqueResolvedMissingModels, skipping_model_validation: skippedMissingModels, name })
             })
             const data = await response.json()
             if (!data.success && data.missing_models?.length > 0) {
                 console.log(`SUCCESS fr is false && missing_models length is greater than 0! data.success: ${data.success}. data.missing_models: ${data.missing_models}`)
                 setMissingModels(data.missing_models);
+            } else if (!data.success && !!data.error) {
+                toast.error(data.error);
             } else {
                 navigate('/')
             }
@@ -181,93 +107,62 @@ function ImportWorkflowUI() {
         }
     })
 
-    const resolveMissingModelMutationWithBackup = useMutation({
-        mutationFn: async ({ id_to_resolve, backup_to_use }: { id_to_resolve: string, backup_to_use: string }) => {
-            setResolvingModelWithId(id_to_resolve);
-            console.log("resolveMissingModelMutationWithBackup id_to_resolve:", id_to_resolve);
-            console.log("resolveMissingModelMutationWithBackup backup_to_use:", backup_to_use);
-            const missing_model = missingModels.find((missingModel) => missingModel.id === id_to_resolve);
-            const backup_model = missing_model?.backup_models.find((backupModel) => backupModel.id === backup_to_use);
-            if (!missing_model || !backup_model || !importJson) {
-                toast.error("something went wrong when resolving your model. please try again.")
+    const resolveMissingModelMutationWithSuggestion = useMutation({
+        mutationFn: async ({ filename, node_type, source }: { filename: string, node_type: string, source: Source }) => {
+            if (!filename || !node_type || !source) {
+                toast.error("something went wrong when resolving your model. please try again.");
                 return;
             }
-            //replace string in importJson (we don't know where it's located but it's somewhere in the string) that matches missing_mode.file_name with backup_model.file_name below
-            const updatedJson = importJson.replace(new RegExp(missing_model.file_name, 'g'), backup_model.file_name);
-            setImportJson(updatedJson);
-            const updatedMissingModels = missingModels.map((missingModel) => {
-                if (missingModel.id === id_to_resolve) {
-                    return { ...missingModel, resolved: true, new_file_name: backup_model.file_name };
-                }
-                return missingModel;
-            });
-            setMissingModels(updatedMissingModels);
+            
+            try {
+                // const newItem = { filename: filename, node_type: node_type, source: source };
+                // const newSet = new Set(resolvedMissingModels);
+                // newSet.add(newItem);
+                // setResolvedMissingModels(newSet);
+                setResolvedMissingModels([...resolvedMissingModels, { filename: filename, node_type: node_type, source: source }]);
+            } catch (error: unknown) {
+                toast.error("something went wrong when resolving your model. please try again.");
+                return;
+            }
 
             toast.success("successfully resolved")
 
-            return undefined;
-        },
-        onSuccess: async () => {
-            setResolvingModelWithId("");
+            return;
         }
     })
 
-    const resolveMissingModelMutationWithURL = useMutation({
-        mutationFn: async ({ id_to_resolve, url, type }: { id_to_resolve: string, url: string, type: string }) => {
-            setResolvingModelWithId(id_to_resolve);
-            console.log("resolveMissingModelMutationWithURL id_to_resolve:", id_to_resolve);
-            console.log("resolveMissingModelMutationWithURL url:", url);
-            console.log("resolveMissingModelMutationWithURL type:", type);
-            const missing_model = missingModels.find((missingModel) => missingModel.id === id_to_resolve);
-            // const res = await fetch(`${CW_ENDPOINT}/api/get-model-name`, { //what do we do here?
-            //     method: 'POST',
-            //     headers: {
-            //         'Content-Type': 'application/json'
-            //     },
-            //     body: JSON.stringify({ url: url, type: type }),
-            // })
-            const res = await new Promise((resolve) => {
-                setTimeout(() => {
-                    resolve({ 
-                        json: () => Promise.resolve({ file_name: 'ip-adapter-faceid_sd15_lora.safetensors' })
-                    });
-                }, 10000); // Simulate 10-second delay
-            });
-            //@ts-ignore
-            const { file_name } = await res.json(); 
-            if (!missing_model || !file_name || !importJson) {
-                toast.error("something went wrong when resolving your model. please try again.")
+    const unResolveMissingModelMutationWithSuggestion = useMutation({
+        mutationFn: async ({ filename }: { filename: string }) => {
+            if (!filename) {
+                toast.error("something went wrong when attempting to edit your model. please try again.");
                 return;
             }
-            //replace string in importJson (we don't know where it's located but it's somewhere in the string) that matches missing_mode.file_name with backup_model.file_name below
-            const updatedJson = importJson.replace(new RegExp(missing_model.file_name, 'g'), file_name);
-            setImportJson(updatedJson);
-            const updatedMissingModels = missingModels.map((missingModel) => {
-                if (missingModel.id === id_to_resolve) {
-                    return { ...missingModel, resolved: true, new_file_name: file_name };
-                }
-                return missingModel;
-            });
-            setMissingModels(updatedMissingModels);
+            
+            try {
+                // const itemToRemove = { filename: "example", node_type: "example" };
+                // const updatedSet = new Set([...resolvedMissingModels].filter(item => item !== itemToRemove));
+                // setResolvedMissingModels(updatedSet);
+                setResolvedMissingModels(resolvedMissingModels.filter((missingModel) => missingModel.filename === filename));
+            } catch (error: unknown) {
+                toast.error("something went wrong when attempting to edit your model. please try again.");
+                return;
+            }
 
             toast.success("successfully resolved")
 
-            return undefined;
-        },
-        onSuccess: async () => {
-            setResolvingModelWithId("");
+            return;
         }
     })
 
     useEffect(() => {
-        if (missingModels.every((missing_model) => !!missing_model.resolved)) {
+        if (missingModels.length > 0 && resolvedMissingModels.length > 0 && missingModels.length === resolvedMissingModels.length) {
             console.log("RESOLVED all missing models")
             setResolvedAllModels(true);
         } else {
             console.log("HAVE NOT RESOLVED all missing models")
             setResolvedAllModels(false);
         }
-    }, [missingModels])
+    }, [missingModels, resolvedMissingModels])
 
     useEffect(() => {
         setProjectStatusDialogOpen(importProjectMutation.isPending);
@@ -430,81 +325,9 @@ function ImportWorkflowUI() {
                     </CardHeader>
                     <CardContent className="flex flex-col gap-6">
                         {missingModels.map((missing_model) => { //iterate through missingModels instead
-                            if (!missing_model.resolved) {
-                                return (
-                                    <div className='w-full flex flex-col items-start gap-4'>
-                                        <div className='w-full flex flex-row items-center justify-between'>
-                                            <div className='flex flex-row items-center gap-2'>
-                                                {resolvingModelWithID === missing_model.id ? <Loader2Icon className=' text-orange-500 animate-spin w-4 h-4' /> : <AlertTriangle className='w-4 h-4 text-red-500' />}
-                                                <h3 className='text-white font-bold'>{missing_model.filename}</h3>
-                                            </div>
-                                        </div>
-                                        <div className='w-full flex flex-col items-start gap-4'>
-                                            <div className='w-full flex flex-col items-start gap-'>
-                                                <div className='flex flex-row items-center gap-2'>
-                                                    <Replace className='w-4 h-4 text-green-400' />
-                                                    <p className='text-white font-semibold'>Replace with</p>
-                                                </div>
-                                                {missing_model.suggestions.map((suggestion) => {
-                                                    return (
-                                                        <div key={suggestion.hf_file_id || suggestion.civitai_file_id} className='w-full flex flex-row items-center justify-between my-1'>
-                                                            <div className='flex flex-row items-center space-x-2'>
-                                                                {suggestion.source === "civitai" ? <img alt={`civitai logo for model ${suggestion.filename}`} src='/civitai-logo-github.png' className='ph-no-capture w-5 h-5' /> : <HFLogo className='w-5 h-5' />}
-                                                                <p className='text-white'>{suggestion.filename}</p>
-                                                                {suggestion.filepath && 
-                                                                <Badge className='flex flex-row items-center gap-2'>
-                                                                    <File className='w-4 h-4' />
-                                                                    {suggestion.filepath}
-                                                                </Badge>}
-                                                            </div>
-                                                            <div className='flex flex-row items-center gap-2'>
-                                                                <Button
-                                                                size='sm'
-                                                                className=''
-                                                                onClick={(e) => {
-                                                                    e.preventDefault();
-                                                                    resolveMissingModelMutationWithBackup.mutate({ id_to_resolve: missing_model.id, backup_to_use: backup_model.id })
-                                                                }}
-                                                                >
-                                                                    Use this model
-                                                                </Button>
-                                                            </div>
-                                                        </div>
-                                                    )
-                                                })}
-                                            </div>
-                                            <ImportURLUI failed_model_id={missing_model.id} mutationToUse={resolveMissingModelMutationWithURL} />
-                                        </div>
-                                        <Separator className='bg-[#444]' />
-                                    </div>
-                                )
-                            } else {
-                                return (
-                                    <div className='w-full flex flex-row items-center justify-between'>
-                                        <div className='flex flex-row items-center gap-2'>
-                                            <CheckCircle className='w-4 h-4 text-green-400' />
-                                            <h3 className='text-white font-bold'>{failed_model.new_file_name}</h3>
-                                            <h3 className='text-[#999] font-bold line-through ml-2'>{failed_model.file_name}</h3>
-                                        </div>
-                                        <Button 
-                                        size='sm'
-                                        onClick={(e) => {
-                                            e.preventDefault();
-                                            const updatedMissingModels = missingModels.map((missingModel) => {
-                                                if (missingModel.id === failed_model.id) {
-                                                    return { ...missingModel, resolved: false, new_file_name: "" };
-                                                }
-                                                return missingModel;
-                                            });
-                                            setMissingModels(updatedMissingModels);
-                                        }}
-                                        >
-                                            Edit
-                                        </Button>
-                                    </div>
-                                )
-                            }
-                        })}
+                        return (
+                            <MissingModelItem missingModel={missing_model} resolveMutationToUse={resolveMissingModelMutationWithSuggestion} unResolveMutationToUse={unResolveMissingModelMutationWithSuggestion} />
+                        )})}
                     </CardContent>
                     {!resolvedAllModels &&
                     <CardFooter>
