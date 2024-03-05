@@ -1,17 +1,13 @@
 'use client';
 
-import { Loader2Icon, AlertTriangle, Replace, File, CheckCircle, InfoIcon, Import, ChevronsUpDown, Fingerprint } from 'lucide-react';
+import { Loader2Icon, AlertTriangle, Replace, CheckCircle, InfoIcon, ChevronsUpDown, Fingerprint } from 'lucide-react';
 import { useState } from 'react'
 import { UseMutationResult } from '@tanstack/react-query';
 import { Button } from './ui/button';
 import { MissingModel, Source } from '@/lib/types';
 import { Separator } from './ui/separator';
 import { Badge } from './ui/badge';
-// import ImportURLUI from './ImportURLUI';
 import HFLogo from './HFLogo';
-import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
-import { Input } from './ui/input';
-import { Label } from './ui/label';
 import { toast } from 'sonner';
 import {
     Collapsible,
@@ -23,20 +19,7 @@ function MissingModelItem({ missingModel, resolveMutationToUse, unResolveMutatio
     const [loading, setLoading] = useState(false);
     const [resolved, setResolved] = useState(false);
     const [newFileName, setNewFileName] = useState("");
-    const [modelURLToImport, setModelURLToImport] = useState("");
-    const [modelTypeToImport, setModelTypeToImport] = useState<"hf" | "civit">("hf");
-    const [importLoading, setImportLoading] = useState(false);
     const [isOpen, setIsOpen] = useState(true);
-
-    const morphingPlaceholder = () => {
-        if (modelTypeToImport === "hf") {
-            return 'https://huggingface.co/h94/IP-Adapter-FaceID/blob/main/ip-adapter-faceid_sd15_lora.safetensors';
-        } else if (modelTypeToImport === "civit") {
-            return 'https://civitai.com/models/4201/realistic-vision-v60-b1?modelVersionId=130072'
-        } else {
-            return 'custom.com'
-        }
-    }
 
     if (!resolved) {
         return (
@@ -119,63 +102,6 @@ function MissingModelItem({ missingModel, resolveMutationToUse, unResolveMutatio
                             )
                         })}
                     </div>
-                    {/* <div className='w-full flex flex-col items-start gap-2'>
-                        <div className='flex flex-row items-center gap-2'>
-                            <Import className='w-4 h-4 text-green-400' />
-                            <p className='text-white font-semibold'>Or import from URL</p>
-                        </div>
-                        <div className='flex flex-row items-center space-x-4'>
-                            <RadioGroup 
-                            className='flex flex-row' 
-                            defaultValue="hf" 
-                            onValueChange={(currentValue) => {
-                                if (currentValue === "hf" || currentValue === "civit") {
-                                    setModelTypeToImport(currentValue);
-                                }
-                            }}>
-                                <div className="flex items-center space-x-2">
-                                    <RadioGroupItem className='text-white border-white' value="hf" id="r1" />
-                                    <Label className='text-white' htmlFor="r1">Hugging Face</Label>
-                                </div>
-                                <div className="flex items-center space-x-2">
-                                    <RadioGroupItem className='text-white border-white' value="civit" id="r2" />
-                                    <Label className='text-white' htmlFor="r2">Civit AI</Label>
-                                </div>
-                            </RadioGroup>
-                        </div>
-                        <div className='w-full flex flex-row space-x-2 items-center'>
-                            <Input
-                            className='border-[#222] bg-[#000] text-white'
-                            placeholder={morphingPlaceholder()}
-                            value={modelURLToImport}
-                            onChange={(e) => {
-                                e.preventDefault();
-                                setModelURLToImport(e.target.value);
-                            }}
-                            />
-                            <Button 
-                            onClick={async (e) => {
-                                e.preventDefault();
-                                setLoading(true);
-                                setImportLoading(true);
-                                try {
-                                    const mutation = await resolveMutationToUse.mutateAsync({ filename: missingModel.filename, node_type: missingModel.node_type, source: { type: modelURLToImport.startsWith('https://huggingface.co/') ? "hf" : "civitai",  file_id: null, url: modelURLToImport } })
-                                    // resolveMutationToUse.mutate({ filename: missingModel.filename, node_type: missingModel.node_type, source: { type: modelURLToImport.startsWith('https://huggingface.co/') ? "hf" : "civitai",  file_id: null, url: modelURLToImport } })
-                                    console.log("mutation:", mutation);
-                                    setNewFileName(modelURLToImport);
-                                    setResolved(true);
-                                } catch (error) {
-                                    toast.error("there was an error importing the url, please try again!")
-                                } finally {
-                                    setLoading(false);
-                                    setImportLoading(false);
-                                }
-                            }}
-                            >
-                                {importLoading ? <Loader2Icon className='w-4 h-4 animate-spin text-white' /> : 'Import'}
-                            </Button>
-                        </div>
-                    </div> */}
                 </div>
                 <Separator className='bg-[#444]' />
             </div>
