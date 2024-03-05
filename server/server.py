@@ -137,7 +137,8 @@ def import_project():
     name = request_data["name"]
     import_json = request_data["import_json"]
     resolved_missing_models = request_data["resolved_missing_models"]
-    skipping_model_validation = request_data["skipping_model_validation"]
+    # skipping_model_validation = request_data["skipping_model_validation"]
+    skipping_model_validation = request_data.get("skipping_model_validation")
 
     # set id to a folder friendly name of the project name (lowercase, no spaces, etc.)
     id = slugify(name)
@@ -154,7 +155,9 @@ def import_project():
         print("Detected workflow json format, converting to launcher json format")
         #only resolve missing models for workflows w/ workflow json format
         skip_model_validation = True if skipping_model_validation else False
+        print(f"import_project value of skip_model_validation: {skip_model_validation}")
         if len(resolved_missing_models) > 0:
+            print(f"import_project entering for loop for resolved_missing_models: {resolved_missing_models}")
             for model in resolved_missing_models:
                 if (model["filename"] is None or model["node_type"] is None):
                     return jsonify({ "success": False, "error": f"one of the resolved models has an empty filename or node type. please try again." })
@@ -165,7 +168,9 @@ def import_project():
                 elif (model["source"]["file_id"] is None and model["source"]["url"] is None):
                     return jsonify({ "success": False, "error": f"you didn't select one of the suggestions (or import a url) for the following missing file: {model['filename']}" })
             skip_model_validation = True
-                
+        print(f"value of import_json: {import_json}")
+        print(f"value of resolved_missing_models: {resolved_missing_models}") 
+        print(f"value of skip_model_validation: {skip_model_validation}") 
         res = get_launcher_json_for_workflow_json(import_json, resolved_missing_models, skip_model_validation)
         if (res["success"] and res["launcher_json"]):
             launcher_json = res["launcher_json"]
