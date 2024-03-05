@@ -39,7 +39,10 @@ export type Suggestion = {
     source: "hf" | "civitai",
     filepath: string,
     hf_file_id: number | null,
-    civitai_file_id: number | null
+    civitai_file_id: number | null,
+    url: string,
+    node_type: string,
+    sha256_checksum: string | null | undefined
 }
 
 export type Source = {
@@ -51,7 +54,8 @@ export type Source = {
 export type MissingModel = {
     filename: string,
     node_type: string,
-    suggestions: Suggestion[]
+    suggestions: Suggestion[],
+    dest_relative_path: string;
     // backup_models: { id: string, file_name: string, link: string, type: string }[],
     // resolved: boolean,
     // new_file_name: string
