@@ -76,6 +76,7 @@ function ImportWorkflowUI() {
 
     const importProjectMutation = useMutation({
         mutationFn: async ({ import_json, name, partiallyResolved }: { import_json: string, name: string, partiallyResolved?: boolean }) => {
+            console.log("importProjectMutation. entered function!")
             const final_import_json = JSON.parse(import_json)
             const uniqueFilenames = new Set();
             const uniqueResolvedMissingModels = resolvedMissingModels.filter((model) => {
@@ -85,12 +86,18 @@ function ImportWorkflowUI() {
                 uniqueFilenames.add(model.filename);
                 return true;
             });
+            console.log("importProjectMutation final_import_json:", final_import_json);
+            console.log("importProjectMutation uniqueResolvedMissingModels:", uniqueResolvedMissingModels);
+            console.log("importProjectMutation skippedMissingModels:", skippedMissingModels);
+            console.log("importProjectMutation name:", name);
+            const partiallyResolvedBool = partiallyResolved ? true : false;
+            console.log("importProjectMutation partiallyResolvedBool:", partiallyResolvedBool);
             const response = await fetch(`/api/import_project`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json'
                 },
-                body: JSON.stringify({ import_json: final_import_json, resolved_missing_models: uniqueResolvedMissingModels, skipping_model_validation: skippedMissingModels || partiallyResolved, name })
+                body: JSON.stringify({ import_json: final_import_json, resolved_missing_models: uniqueResolvedMissingModels, skipping_model_validation: skippedMissingModels || partiallyResolvedBool, name })
             })
             const data = await response.json()
             if (!data.success && data.missing_models?.length > 0) {
