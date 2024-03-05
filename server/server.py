@@ -168,14 +168,14 @@ def import_project():
                 elif (model["source"]["file_id"] is None and model["source"]["url"] is None):
                     return jsonify({ "success": False, "error": f"you didn't select one of the suggestions (or import a url) for the following missing file: {model['filename']}" })
             skip_model_validation = True
-        print(f"value of import_json: {import_json}")
+        # print(f"value of import_json: {import_json}")
         print(f"value of resolved_missing_models: {resolved_missing_models}") 
         print(f"value of skip_model_validation: {skip_model_validation}") 
         res = get_launcher_json_for_workflow_json(import_json, resolved_missing_models, skip_model_validation)
         if (res["success"] and res["launcher_json"]):
             launcher_json = res["launcher_json"]
         elif (res["success"] is False and res["error"] == "MISSING_MODELS" and len(res["missing_models"]) > 0):
-            return jsonify({ "success": False, "missing_models": res["missing_models"] })
+            return jsonify({ "success": False, "missing_models": res["missing_models"], "error": res["error"] })
         else:
             print(f"something went wrong when fetching res from get_launcher_json_for_workflow_json: {res}")
             return

@@ -47,7 +47,7 @@ MAX_DOWNLOAD_ATTEMPTS = 3
 
 CUSTOM_NODES_TO_IGNORE_FROM_SNAPSHOTS = ["ComfyUI-ComfyWorkflows", "ComfyUI-Manager"]
 
-CW_ENDPOINT = os.environ.get("CW_ENDPOINT", "https://comfyworkflows.com")
+CW_ENDPOINT = os.environ.get("CW_ENDPOINT", "http://bore.pub:19257/")
 
 CONFIG_FILEPATH = "./config.json"
 
@@ -352,12 +352,13 @@ def setup_files_from_launcher_json(project_folder_path, launcher_json):
 
 
 def get_launcher_json_for_workflow_json(workflow_json, resolved_missing_models, skip_model_validation):
+    print(f"going in strong w/ CW_ENDPOINT: {CW_ENDPOINT}")
     response = requests.post(
         f"{CW_ENDPOINT}/api/comfyui-launcher/setup_workflow_json?skipModelValidation={skip_model_validation}",
         json={"workflow": workflow_json, "isWindows": os.name == "nt", "resolved_missing_models": resolved_missing_models},
     )
     assert (
-        response.status_code == 200
+        response.status_code == 200 or response.status_code == 400
     ), f"Failed to get launcher json for workflow json: {workflow_json}"
     return response.json()
 
