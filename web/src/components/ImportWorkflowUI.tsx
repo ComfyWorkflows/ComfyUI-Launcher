@@ -13,7 +13,6 @@ import {
     Card,
     CardContent,
     CardDescription,
-    CardFooter,
     CardHeader,
     CardTitle,
 } from "@/components/ui/card"
@@ -68,9 +67,6 @@ function ImportWorkflowUI() {
 
     const [missingModels, setMissingModels] = React.useState<MissingModel[]>([]);
     const [resolvedMissingModels, setResolvedMissingModels] = React.useState<ResolvedMissingModelFile[]>([]);
-    // const [resolvedMissingModels, setResolvedMissingModels] = React.useState(new Set<ResolvedMissingModelFile>());
-    const [skippingMissingModelsWarningOpen, setSkippingMissingModelsWarningOpen] = useState(false);
-    const [skippedMissingModels, setSkippedMissingModels] = useState(false);
     const [resolvedAllModels, setResolvedAllModels] = useState(false);
     const [confirmOnlyPartiallyResolvingOpen, setConfirmOnlyPartiallyResolvingOpen] = useState(false);
 
@@ -88,7 +84,7 @@ function ImportWorkflowUI() {
             });
             console.log("importProjectMutation final_import_json:", final_import_json);
             console.log("importProjectMutation uniqueResolvedMissingModels:", uniqueResolvedMissingModels);
-            console.log("importProjectMutation skippedMissingModels:", skippedMissingModels);
+            // console.log("importProjectMutation skippedMissingModels:", skippedMissingModels);
             console.log("importProjectMutation name:", name);
             const partiallyResolvedBool = partiallyResolved ? true : false;
             console.log("importProjectMutation partiallyResolvedBool:", partiallyResolvedBool);
@@ -97,7 +93,7 @@ function ImportWorkflowUI() {
                 headers: {
                     'Content-Type': 'application/json'
                 },
-                body: JSON.stringify({ import_json: final_import_json, resolved_missing_models: uniqueResolvedMissingModels, skipping_model_validation: skippedMissingModels || partiallyResolvedBool, name })
+                body: JSON.stringify({ import_json: final_import_json, resolved_missing_models: uniqueResolvedMissingModels, skipping_model_validation: partiallyResolvedBool, name })
             })
             const data = await response.json()
             console.log("DATA:", data);
@@ -279,34 +275,10 @@ function ImportWorkflowUI() {
                 </DialogContent>
             </Dialog>
 
-            <Dialog onOpenChange={(open) => setSkippingMissingModelsWarningOpen(open)} open={skippingMissingModelsWarningOpen}>
-                <DialogContent className="sm:max-w-[425px]">
-                    <DialogHeader>
-                        <DialogTitle>Are you sure you want to skip fixing unresolved models?</DialogTitle>
-                        <DialogDescription>You will probably face errors when running the workflow and might have to upload replacement models to run the workflow.</DialogDescription>
-                    </DialogHeader>
-                    <DialogFooter>
-                        <Button onClick={(e) => {
-                            e.preventDefault();
-                            setSkippingMissingModelsWarningOpen(false);
-                        }}>
-                            Cancel
-                        </Button>
-                        <Button onClick={(e) => {
-                            e.preventDefault();
-                            setSkippedMissingModels(true);
-                            setSkippingMissingModelsWarningOpen(false);
-                        }}>
-                            Yes, skip
-                        </Button>
-                    </DialogFooter>
-                </DialogContent>
-            </Dialog>
-
             <Dialog onOpenChange={(open) => setConfirmOnlyPartiallyResolvingOpen(open)} open={confirmOnlyPartiallyResolvingOpen}>
                 <DialogContent className="sm:max-w-[425px]">
                     <DialogHeader>
-                        <DialogTitle>You've only partially resolved the missing models, are you sure you want to continue?</DialogTitle>
+                        <DialogTitle>You've only partially resolved the missing models, are you sure you want to skip resolving all models?</DialogTitle>
                         <DialogDescription>You will probably face errors when running the workflow in ComfyUI and might have to upload replacement models to run the workflow.</DialogDescription>
                     </DialogHeader>
                     <DialogFooter>
@@ -321,7 +293,7 @@ function ImportWorkflowUI() {
                             if (!importJson) return;
                             importProjectMutation.mutate({ import_json: importJson, name: projectName, partiallyResolved: true })
                         }}>
-                            Yes, import
+                            Yes, skip
                         </Button>
                     </DialogFooter>
                 </DialogContent>
@@ -351,7 +323,7 @@ function ImportWorkflowUI() {
                     </aside>
                 </div>
 
-                {missingModels.length > 0 && !skippedMissingModels &&
+                {missingModels.length > 0 &&
                 <Card className="bg-[#0a0a0a] backdrop-blur-xl border-2 border-[#444] w-full" >
                     <CardHeader>
                         <CardTitle className='text-white'>{resolvedAllModels ? 'All unrecognized models have been resolved.' : 'These models were not recognized'}</CardTitle>
@@ -363,20 +335,11 @@ function ImportWorkflowUI() {
                             <MissingModelItem key={`${missing_model.filename}_${missing_model.node_type}_${missing_model.dest_relative_path}`} missingModel={missing_model} resolveMutationToUse={resolveMissingModelMutationWithSuggestion} unResolveMutationToUse={unResolveMissingModelMutationWithSuggestion} />
                         )})}
                     </CardContent>
-                    {!resolvedAllModels &&
-                    <CardFooter>
-                        <Button onClick={(e) => {
-                            e.preventDefault();
-                            setSkippingMissingModelsWarningOpen(true);
-                        }}>
-                            Skip
-                        </Button>
-                    </CardFooter>}
                 </Card>}
 
 
                 <div className='mt-5'>
-                    <Button variant="default" disabled={!importJson || (missingModels.length > 0 && resolvedMissingModels.length === 0 && !skippedMissingModels)} onClick={(e) => {
+                    <Button variant="default" disabled={!importJson} onClick={(e) => {
                         e.preventDefault();
                         if (!importJson) return;
                         if (missingModels.length > 0 && !resolvedAllModels) {
