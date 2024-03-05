@@ -100,8 +100,10 @@ function ImportWorkflowUI() {
                 body: JSON.stringify({ import_json: final_import_json, resolved_missing_models: uniqueResolvedMissingModels, skipping_model_validation: skippedMissingModels || partiallyResolvedBool, name })
             })
             const data = await response.json()
+            console.log("DATA:", data);
             if (!data.success && data.missing_models?.length > 0) {
                 console.log(`SUCCESS fr is false && missing_models length is greater than 0! data.success: ${data.success}. data.missing_models: ${data.missing_models}`)
+                toast.error(data.error);
                 setMissingModels(data.missing_models);
             } else if (!data.success && !!data.error) {
                 toast.error(data.error);
@@ -156,7 +158,7 @@ function ImportWorkflowUI() {
                 return;
             }
 
-            toast.success("successfully resolved")
+            // toast.success("successfully resolved")
 
             return;
         }
@@ -353,12 +355,12 @@ function ImportWorkflowUI() {
                 <Card className="bg-[#0a0a0a] backdrop-blur-xl border-2 border-[#444] w-full" >
                     <CardHeader>
                         <CardTitle className='text-white'>{resolvedAllModels ? 'All unrecognized models have been resolved.' : 'These models were not recognized'}</CardTitle>
-                        <CardDescription>{resolvedAllModels ? 'Please try importing again.' : 'We could not find the folloiwng models from the workflow you tried to import. Replace missing models with the models that are available to avoid getting errors.'}</CardDescription>
+                        <CardDescription className='text-[#999]'>{resolvedAllModels ? 'Please try importing again.' : 'Replace missing models with the models that are available to avoid getting errors.'}</CardDescription>
                     </CardHeader>
-                    <CardContent className="flex flex-col gap-6">
+                    <CardContent className="flex flex-col gap-6 space-y-5">
                         {missingModels.map((missing_model) => { //iterate through missingModels instead
                         return (
-                            <MissingModelItem missingModel={missing_model} resolveMutationToUse={resolveMissingModelMutationWithSuggestion} unResolveMutationToUse={unResolveMissingModelMutationWithSuggestion} />
+                            <MissingModelItem key={`${missing_model.filename}_${missing_model.node_type}_${missing_model.dest_relative_path}`} missingModel={missing_model} resolveMutationToUse={resolveMissingModelMutationWithSuggestion} unResolveMutationToUse={unResolveMissingModelMutationWithSuggestion} />
                         )})}
                     </CardContent>
                     {!resolvedAllModels &&

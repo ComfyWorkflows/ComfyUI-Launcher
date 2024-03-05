@@ -1,6 +1,6 @@
 'use client';
 
-import { Loader2Icon, AlertTriangle, Replace, File, CheckCircle, InfoIcon, Import } from 'lucide-react';
+import { Loader2Icon, AlertTriangle, Replace, File, CheckCircle, InfoIcon, Import, ChevronsUpDown, Fingerprint } from 'lucide-react';
 import { useState } from 'react'
 import { UseMutationResult } from '@tanstack/react-query';
 import { Button } from './ui/button';
@@ -13,14 +13,20 @@ import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
 import { Input } from './ui/input';
 import { Label } from './ui/label';
 import { toast } from 'sonner';
+import {
+    Collapsible,
+    CollapsibleContent,
+    CollapsibleTrigger,
+} from "@/components/ui/collapsible"
 
 function MissingModelItem({ missingModel, resolveMutationToUse, unResolveMutationToUse }: { missingModel: MissingModel, resolveMutationToUse: UseMutationResult<void, Error, { filename: string; node_type: string; source: Source; }, unknown>, unResolveMutationToUse: UseMutationResult<void, Error, { filename: string; }, unknown>}) {
     const [loading, setLoading] = useState(false);
-    const [resolved, setResolved] = useState(true);
+    const [resolved, setResolved] = useState(false);
     const [newFileName, setNewFileName] = useState("");
     const [modelURLToImport, setModelURLToImport] = useState("");
     const [modelTypeToImport, setModelTypeToImport] = useState<"hf" | "civit">("hf");
     const [importLoading, setImportLoading] = useState(false);
+    const [isOpen, setIsOpen] = useState(true);
 
     const morphingPlaceholder = () => {
         if (modelTypeToImport === "hf") {
@@ -34,39 +40,62 @@ function MissingModelItem({ missingModel, resolveMutationToUse, unResolveMutatio
 
     if (!resolved) {
         return (
-            <div className='w-full flex flex-col items-start gap-4'>
+            <Collapsible
+            open={isOpen}
+            onOpenChange={setIsOpen}
+            className="w-full flex flex-col items-start space-y-4"
+          >
+            <div className="w-full flex items-center justify-between space-x-4">
                 <div className='w-full flex flex-row items-center justify-between'>
                     <div className='flex flex-row items-center gap-2'>
-                        {loading ? <Loader2Icon className=' text-orange-500 animate-spin w-4 h-4' /> : <AlertTriangle className='w-4 h-4 text-red-500' />}
-                        <h3 className='text-white font-bold'>{missingModel.filename}</h3>
+                        {loading ? <Loader2Icon className=' text-orange-500 animate-spin w-5 h-5' /> : <AlertTriangle className='w-5 h-5 text-red-500' />}
+                        <h3 className='text-white text-lg font-bold'>{missingModel.filename}</h3>
                         <Badge className='flex flex-row items-center gap-2'>
                             <InfoIcon className='w-4 h-4' />
                             {missingModel.node_type}
                         </Badge>
                     </div>
                 </div>
+              <CollapsibleTrigger asChild>
+                <Button className="flex flex-row items-center gap-2">
+                  <ChevronsUpDown className="h-4 w-4" />
+                  {isOpen ? 'hide suggestions' : 'show suggestions'}
+                  <span className="sr-only">Toggle</span>
+                </Button>
+              </CollapsibleTrigger>
+            </div>
+            {/* below stuff that u wanna render outside of suggestions */}
+            <CollapsibleContent className="space-y-2 w-full">
+            <div className='w-full flex flex-col items-start gap-4'>
                 <div className='w-full flex flex-col items-start gap-4'>
                     <div className='w-full flex flex-col items-start gap-'>
                         <div className='flex flex-row items-center gap-2'>
                             <Replace className='w-4 h-4 text-green-400' />
-                            <p className='text-white font-semibold'>Replace with</p>
+                            <h4 className='text-white text-md font-semibold'>Replace with</h4>
                         </div>
                         {missingModel.suggestions.map((suggestion) => {
                             return (
-                                <div key={suggestion.hf_file_id || suggestion.civitai_file_id} className='w-full flex flex-row items-center justify-between my-1'>
+                                <div key={`${suggestion.civitai_file_id}_${suggestion.hf_file_id}`} className='w-full flex flex-row items-center justify-between my-1'>
                                     <div className='flex flex-row items-center space-x-2'>
                                         {suggestion.source === "civitai" ? <img alt={`civitai logo for model ${suggestion.filename}`} src='/civitai-logo-github.png' className='ph-no-capture w-5 h-5' /> : <HFLogo className='w-5 h-5' />}
-                                        <p className='text-white'>{suggestion.filename}</p>
-                                        {suggestion.filepath && 
+                                        <a href={suggestion.url} target='_blank'>
+                                            <p className='text-white text-sm font-medium underline decoration-dotted'>{suggestion.filename}</p>
+                                        </a>
                                         <Badge className='flex flex-row items-center gap-2'>
-                                            <File className='w-4 h-4' />
-                                            {suggestion.filepath}
+                                            <InfoIcon className='w-4 h-4' />
+                                            {suggestion.node_type}
+                                        </Badge>
+                                        {suggestion.sha256_checksum &&
+                                        <Badge className='flex flex-row items-center gap-2'>
+                                            <Fingerprint className='w-4 h-4' />
+                                            {`sha256: ${suggestion.sha256_checksum?.slice(0,6)}...`}
                                         </Badge>}
                                     </div>
                                     <div className='flex flex-row items-center gap-2'>
                                         <Button
                                         size='sm'
-                                        className=''
+                                        className='border border-[#222] shadow-sm shadow-[#fff]'
+                                        // variant='secondary'
                                         onClick={async (e) => {
                                             e.preventDefault();
                                             setLoading(true);
@@ -83,14 +112,14 @@ function MissingModelItem({ missingModel, resolveMutationToUse, unResolveMutatio
                                             }
                                         }}
                                         >
-                                            Use this model
+                                            Select
                                         </Button>
                                     </div>
                                 </div>
                             )
                         })}
                     </div>
-                    <div className='w-full flex flex-col items-start gap-2'>
+                    {/* <div className='w-full flex flex-col items-start gap-2'>
                         <div className='flex flex-row items-center gap-2'>
                             <Import className='w-4 h-4 text-green-400' />
                             <p className='text-white font-semibold'>Or import from URL</p>
@@ -146,10 +175,12 @@ function MissingModelItem({ missingModel, resolveMutationToUse, unResolveMutatio
                                 {importLoading ? <Loader2Icon className='w-4 h-4 animate-spin text-white' /> : 'Import'}
                             </Button>
                         </div>
-                    </div>
+                    </div> */}
                 </div>
                 <Separator className='bg-[#444]' />
             </div>
+            </CollapsibleContent>
+          </Collapsible>
         )
     } else {
         return (
