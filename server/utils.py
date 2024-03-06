@@ -47,7 +47,7 @@ MAX_DOWNLOAD_ATTEMPTS = 3
 
 CUSTOM_NODES_TO_IGNORE_FROM_SNAPSHOTS = ["ComfyUI-ComfyWorkflows", "ComfyUI-Manager"]
 
-CW_ENDPOINT = os.environ.get("CW_ENDPOINT", "http://bore.pub:19257/")
+CW_ENDPOINT = os.environ.get("CW_ENDPOINT", "https://comfyworkflows.com/")
 
 CONFIG_FILEPATH = "./config.json"
 
@@ -283,6 +283,7 @@ def setup_files_from_launcher_json(project_folder_path, launcher_json):
                 assert (
                     compute_sha256_checksum(dest_path) == sha256_checksum
                 ), f"File already exists at {dest_path} but has different checksum"
+                print(f"the following destination path already exists: {dest_path}")
                 downloaded_file = True
                 break
 
@@ -321,6 +322,7 @@ def setup_files_from_launcher_json(project_folder_path, launcher_json):
                                         f.write(chunk)
                     
                     if compute_sha256_checksum(dest_path) == sha256_checksum:
+                        print(f"computed checksum: {compute_sha256_checksum(dest_path)} equals key: {sha256_checksum} for relative path: {dest_relative_path}")
                         download_successful = True
                         if dest_relative_path in missing_download_files:
                             missing_download_files.remove(dest_relative_path)
@@ -336,6 +338,7 @@ def setup_files_from_launcher_json(project_folder_path, launcher_json):
 
             if not download_successful:
                 # print(f"WARNING: Failed to download file: {download_url}")
+                print(f"download was not successful for relative path: {dest_relative_path}")
                 missing_download_files.add(dest_relative_path)
                 continue
 
