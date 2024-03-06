@@ -114,7 +114,7 @@ function ImportWorkflowUI() {
     })
 
     const resolveMissingModelMutationWithSuggestion = useMutation({
-        mutationFn: async ({ filename, node_type, source }: { filename: string, node_type: string, source: Source }) => {
+        mutationFn: async ({ filename, node_type, dest_relative_path, source }: { filename: string, node_type: string, dest_relative_path: string, source: Source }) => {
             if (!filename || !node_type || !source) {
                 toast.error("something went wrong when resolving your model. please try again.");
                 return;
@@ -125,7 +125,7 @@ function ImportWorkflowUI() {
                 // const newSet = new Set(resolvedMissingModels);
                 // newSet.add(newItem);
                 // setResolvedMissingModels(newSet);
-                setResolvedMissingModels([...resolvedMissingModels, { filename: filename, node_type: node_type, source: source }]);
+                setResolvedMissingModels([...resolvedMissingModels, { filename: filename, node_type: node_type, dest_relative_path: dest_relative_path, source: source }]);
             } catch (error: unknown) {
                 toast.error("something went wrong when resolving your model. please try again.");
                 return;
@@ -278,7 +278,7 @@ function ImportWorkflowUI() {
             <Dialog onOpenChange={(open) => setConfirmOnlyPartiallyResolvingOpen(open)} open={confirmOnlyPartiallyResolvingOpen}>
                 <DialogContent className="sm:max-w-[425px]">
                     <DialogHeader>
-                        <DialogTitle>You've only partially resolved the missing models, are you sure you want to skip resolving all models?</DialogTitle>
+                        <DialogTitle>Are you sure you want to skip resolving all models?</DialogTitle>
                         <DialogDescription>You will probably face errors when running the workflow in ComfyUI and might have to upload replacement models to run the workflow.</DialogDescription>
                     </DialogHeader>
                     <DialogFooter>

@@ -137,8 +137,8 @@ def import_project():
     name = request_data["name"]
     import_json = request_data["import_json"]
     resolved_missing_models = request_data["resolved_missing_models"]
-    # skipping_model_validation = request_data["skipping_model_validation"]
-    skipping_model_validation = request_data.get("skipping_model_validation")
+    skipping_model_validation = request_data["skipping_model_validation"]
+    # skipping_model_validation = request_data.get("skipping_model_validation")
 
     # set id to a folder friendly name of the project name (lowercase, no spaces, etc.)
     id = slugify(name)
@@ -159,8 +159,8 @@ def import_project():
         if len(resolved_missing_models) > 0:
             print(f"import_project entering for loop for resolved_missing_models: {resolved_missing_models}")
             for model in resolved_missing_models:
-                if (model["filename"] is None or model["node_type"] is None):
-                    return jsonify({ "success": False, "error": f"one of the resolved models has an empty filename or node type. please try again." })
+                if (model["filename"] is None or model["node_type"] is None or model["dest_relative_path"] is None):
+                    return jsonify({ "success": False, "error": f"one of the resolved models has an empty filename, node type, or destination path. please try again." })
                 elif (model["source"]["url"] is not None and model["source"]["file_id"] is None):
                     is_valid = check_url_structure(model["source"]["url"])
                     if (is_valid is False):

@@ -15,7 +15,7 @@ import {
     CollapsibleTrigger,
 } from "@/components/ui/collapsible"
 
-function MissingModelItem({ missingModel, resolveMutationToUse, unResolveMutationToUse }: { missingModel: MissingModel, resolveMutationToUse: UseMutationResult<void, Error, { filename: string; node_type: string; source: Source; }, unknown>, unResolveMutationToUse: UseMutationResult<void, Error, { filename: string; }, unknown>}) {
+function MissingModelItem({ missingModel, resolveMutationToUse, unResolveMutationToUse }: { missingModel: MissingModel, resolveMutationToUse: UseMutationResult<void, Error, { filename: string; node_type: string; dest_relative_path: string; source: Source; }, unknown>, unResolveMutationToUse: UseMutationResult<void, Error, { filename: string; }, unknown>}) {
     const [loading, setLoading] = useState(false);
     const [resolved, setResolved] = useState(false);
     const [newFileName, setNewFileName] = useState("");
@@ -83,7 +83,7 @@ function MissingModelItem({ missingModel, resolveMutationToUse, unResolveMutatio
                                             e.preventDefault();
                                             setLoading(true);
                                             try {
-                                                const mutation = await resolveMutationToUse.mutateAsync({ filename: missingModel.filename, node_type: missingModel.node_type, source: { type: suggestion.civitai_file_id ? "civitai" : "hf",  file_id: suggestion.hf_file_id || suggestion.civitai_file_id, url: null } })
+                                                const mutation = await resolveMutationToUse.mutateAsync({ filename: missingModel.filename, node_type: missingModel.node_type, dest_relative_path: missingModel.dest_relative_path, source: { type: suggestion.civitai_file_id ? "civitai" : "hf",  file_id: suggestion.hf_file_id || suggestion.civitai_file_id, url: null } })
                                                 // resolveMutationToUse.mutate({ filename: missingModel.filename, node_type: missingModel.node_type, source: { type: suggestion.civitai_file_id ? "civitai" : "hf",  file_id: suggestion.hf_file_id || suggestion.civitai_file_id, url: null } })
                                                 console.log("mutation:", mutation);
                                                 setNewFileName(suggestion.filename);
