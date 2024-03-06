@@ -239,7 +239,7 @@ def compute_sha256_checksum(file_path):
             if not data:
                 break
             sha256.update(data)
-    return sha256.hexdigest()
+    return sha256.hexdigest().lower()
 
 def get_config():
     with open(CONFIG_FILEPATH, "r") as f:
@@ -271,7 +271,7 @@ def setup_files_from_launcher_json(project_folder_path, launcher_json):
                 break
             download_url = file_info["download_url"]
             dest_relative_path = file_info["dest_relative_path"]
-            sha256_checksum = file_info["sha256_checksum"]
+            sha256_checksum = file_info["sha256_checksum"].lower()
 
             if not download_url:
                 print(f"WARNING: Could not find download URL for: {dest_relative_path}")
