@@ -64,5 +64,6 @@ export type MissingModel = {
 export type ResolvedMissingModelFile = {
     filename: string,
     node_type: string,
+    dest_relative_path: string,
     source: Source
 }
