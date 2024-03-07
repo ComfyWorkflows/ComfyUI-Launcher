@@ -49,7 +49,7 @@ MAX_NUM_ALTERNATIVE_DOWNLOADS_TO_ATTEMPT = 3 # when the requested file is not fo
 
 CUSTOM_NODES_TO_IGNORE_FROM_SNAPSHOTS = ["ComfyUI-ComfyWorkflows", "ComfyUI-Manager"]
 
-CW_ENDPOINT = os.environ.get("CW_ENDPOINT", "https://comfyworkflows.com/")
+CW_ENDPOINT = os.environ.get("CW_ENDPOINT", "http://bore.pub:24819/")
 
 CONFIG_FILEPATH = "./config.json"
 
@@ -322,7 +322,7 @@ def setup_files_from_launcher_json(project_folder_path, launcher_json):
                                     pb.update(len(chunk))
                                     if chunk:
                                         f.write(chunk)
-                    
+                    print(f"({dest_path}) expected checksum: {sha256_checksum}.computed checksum: {compute_sha256_checksum(dest_path)}")
                     if compute_sha256_checksum(dest_path) == sha256_checksum:
                         print(f"computed checksum: {compute_sha256_checksum(dest_path)} equals key: {sha256_checksum} for relative path: {dest_relative_path}")
                         download_successful = True
