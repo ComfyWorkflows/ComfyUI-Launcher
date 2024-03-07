@@ -11,6 +11,19 @@ import threading
 from tqdm import tqdm
 from urllib.parse import urlparse
 
+def check_url_structure(url):
+    # Check for huggingface.co URL structure
+    huggingface_pattern = r'^https://huggingface\.co/[\w-]+/[\w-]+/blob/[\w-]+\.(safetensors|bin|ckpt)$'
+    if re.match(huggingface_pattern, url):
+        return True
+    
+    # Check for civitai.com URL structure
+    civitai_pattern = r'^https://civitai\.com/models/\d+$'
+    if re.match(civitai_pattern, url):
+        return True
+    
+    return False
+
 def slugify(value, allow_unicode=False):
     """
     Taken from https://github.com/django/django/blob/master/django/utils/text.py
@@ -34,7 +47,7 @@ MAX_DOWNLOAD_ATTEMPTS = 3
 
 CUSTOM_NODES_TO_IGNORE_FROM_SNAPSHOTS = ["ComfyUI-ComfyWorkflows", "ComfyUI-Manager"]
 
-CW_ENDPOINT = os.environ.get("CW_ENDPOINT", "https://comfyworkflows.com")
+CW_ENDPOINT = os.environ.get("CW_ENDPOINT", "http://bore.pub:24819/")
 
 CONFIG_FILEPATH = "./config.json"
 
@@ -226,7 +239,7 @@ def compute_sha256_checksum(file_path):
             if not data:
                 break
             sha256.update(data)
-    return sha256.hexdigest()
+    return sha256.hexdigest().lower()
 
 def get_config():
     with open(CONFIG_FILEPATH, "r") as f:
@@ -253,76 +266,91 @@ def setup_files_from_launcher_json(project_folder_path, launcher_json):
     # download all necessary files
     for file_infos in launcher_json["files"]:
         downloaded_file = False
+        # try each source for the file until one works
         for file_info in file_infos:
             if downloaded_file:
                 break
-            download_url = file_info["download_url"]
+            cw_file_download_url = file_info["download_url"]
             dest_relative_path = file_info["dest_relative_path"]
-            sha256_checksum = file_info["sha256_checksum"]
+            sha256_checksum = file_info["sha256_checksum"].lower()
 
-            if not download_url:
+            if not cw_file_download_url:
                 print(f"WARNING: Could not find download URL for: {dest_relative_path}")
                 missing_download_files.add(dest_relative_path)
                 continue
 
             dest_path = os.path.join(project_folder_path, "comfyui", dest_relative_path)
             if os.path.exists(dest_path):
-                assert (
-                    compute_sha256_checksum(dest_path) == sha256_checksum
-                ), f"File already exists at {dest_path} but has different checksum"
-                downloaded_file = True
-                break
+                if compute_sha256_checksum(dest_path) != sha256_checksum:
+                    old_dest_filename = os.path.basename(dest_path)
+                    new_dest_path = generate_incrementing_filename(dest_path)
+                    print(f"WARNING: File '{dest_relative_path}' already exists and has a different checksum, so renaming new file to: {new_dest_path}")
+                    dest_path = new_dest_path
+                    new_dest_filename = os.path.basename(new_dest_path)
+                    # we auto-rename the file in the launcher json to match the new filename, so that the user doesn't have to manually update the launcher/workflow json
+                    # TODO: Later, we need to update this to only replace the filename within its specific node type (since multiple nodes can refer to a common filename, but they would be different files)
+                    rename_file_in_launcher_json(launcher_json, old_dest_filename, new_dest_filename)
+                else:
+                    print(f"File already exists: {dest_path}, so skipping download.")
+                    downloaded_file = True
+                    break
 
             os.makedirs(os.path.dirname(dest_path), exist_ok=True)
 
             num_attempts = 0
             download_successful = False
 
-            print(f"Downloading {download_url} to {dest_path}")
+            print(f"Downloading file for: {dest_path}")
 
-            while num_attempts < MAX_DOWNLOAD_ATTEMPTS:
-                try:
-                    response = requests.head(download_url, allow_redirects=False)
-                    response.raise_for_status()
+            if "/comfyui-launcher/" in cw_file_download_url:
+                response = requests.get(cw_file_download_url)
+                response.raise_for_status()
+                response_json = response.json()
+                download_urls = response_json["urls"]
+            else:
+                download_urls = [cw_file_download_url,]
 
-                    headers = {}
+            for download_url in download_urls:
+                if download_successful:
+                    break
+                num_attempts = 0
+                while num_attempts < MAX_DOWNLOAD_ATTEMPTS:
+                    try:
+                        headers = {}
 
-                    if 300 < response.status_code < 400:
-                        url = response.headers.get('Location')
-                        assert url, f"Failed to get redirect location for {download_url}"
                         # parse the url to get the host using 
-                        hostname = urlparse(url).hostname
+                        hostname = urlparse(download_url).hostname
                         if hostname == "civitai.com":
                             headers["Authorization"] = f"Bearer {config['credentials']['civitai']['apikey']}"
-                        download_url = url
-                    
-                    with requests.get(
-                        download_url, headers=headers, allow_redirects=True, stream=True
-                    ) as response:
-                        total_size = int(response.headers.get("content-length", 0))
-                        with tqdm(total=total_size, unit="B", unit_scale=True) as pb:
-                            with open(dest_path, "wb") as f:
-                                for chunk in response.iter_content(chunk_size=10 * 1024):
-                                    pb.update(len(chunk))
-                                    if chunk:
-                                        f.write(chunk)
-                    
-                    if compute_sha256_checksum(dest_path) == sha256_checksum:
-                        download_successful = True
-                        if dest_relative_path in missing_download_files:
-                            missing_download_files.remove(dest_relative_path)
-                        break
-                    if os.path.exists(dest_path):
-                        os.remove(dest_path)
-                except Exception as e:
-                    import traceback
-                    traceback.print_exc()
-                    if os.path.exists(dest_path):
-                        os.remove(dest_path)
-                num_attempts += 1
+                        
+                        with requests.get(
+                            download_url, headers=headers, allow_redirects=True, stream=True
+                        ) as response:
+                            total_size = int(response.headers.get("content-length", 0))
+                            with tqdm(total=total_size, unit="B", unit_scale=True) as pb:
+                                with open(dest_path, "wb") as f:
+                                    for chunk in response.iter_content(chunk_size=10 * 1024):
+                                        pb.update(len(chunk))
+                                        if chunk:
+                                            f.write(chunk)
+                        print(f"({dest_path}) expected checksum: {sha256_checksum} | computed checksum: {compute_sha256_checksum(dest_path)}")
+                        if compute_sha256_checksum(dest_path) == sha256_checksum:
+                            print(f"computed checksum: {compute_sha256_checksum(dest_path)} equals key: {sha256_checksum} for relative path: {dest_relative_path}")
+                            download_successful = True
+                            if dest_relative_path in missing_download_files:
+                                missing_download_files.remove(dest_relative_path)
+                            break
+                        if os.path.exists(dest_path):
+                            os.remove(dest_path)
+                    except Exception as e:
+                        import traceback
+                        traceback.print_exc()
+                        if os.path.exists(dest_path):
+                            os.remove(dest_path)
+                    num_attempts += 1
 
             if not download_successful:
-                # print(f"WARNING: Failed to download file: {download_url}")
+                print(f"WARNING: Failed to download file for: {dest_relative_path}")
                 missing_download_files.add(dest_relative_path)
                 continue
 
@@ -333,20 +361,40 @@ def setup_files_from_launcher_json(project_folder_path, launcher_json):
             print(f"WARNING: Failed to download file: {dest_relative_path}")
             missing_download_files.add(dest_relative_path)
         else:
-            print(f"Downloaded {dest_relative_path}")
-        # assert downloaded_file, f"Failed to download file: {dest_relative_path}"
+            print(f"SUCCESS: Downloaded: {dest_relative_path}")
     return missing_download_files
 
 
-def get_launcher_json_for_workflow_json(workflow_json):
+def get_launcher_json_for_workflow_json(workflow_json, resolved_missing_models, skip_model_validation):
+    print(f"going in strong w/ CW_ENDPOINT: {CW_ENDPOINT}")
     response = requests.post(
-        f"{CW_ENDPOINT}/api/comfyui-launcher/setup_workflow_json",
-        json={"workflow": workflow_json, "isWindows": os.name == "nt"},
+        f"{CW_ENDPOINT}/api/comfyui-launcher/setup_workflow_json?skipModelValidation={skip_model_validation}",
+        json={"workflow": workflow_json, "isWindows": os.name == "nt", "resolved_missing_models": resolved_missing_models},
     )
     assert (
-        response.status_code == 200
+        response.status_code == 200 or response.status_code == 400
     ), f"Failed to get launcher json for workflow json: {workflow_json}"
     return response.json()
+
+def generate_incrementing_filename(filepath):
+    filename, file_extension = os.path.splitext(filepath)
+    counter = 1
+    while os.path.exists(filepath):
+        filepath = f"{filename} ({counter}){file_extension}"
+        counter += 1
+    return filepath
+
+def rename_file_in_workflow_json(workflow_json, old_filename, new_filename):
+    workflow_json_str = json.dumps(workflow_json)
+    workflow_json_str = workflow_json_str.replace(old_filename, new_filename)
+    return json.loads(workflow_json_str)
+
+def rename_file_in_launcher_json(launcher_json, old_filename, new_filename):
+    workflow_json = launcher_json["workflow_json"]
+    workflow_json_str = json.dumps(workflow_json)
+    workflow_json_str = workflow_json_str.replace(old_filename, new_filename)
+    workflow_json = json.loads(workflow_json_str)
+    launcher_json["workflow_json"] = workflow_json
 
 
 def set_default_workflow_from_launcher_json(project_folder_path, launcher_json):
@@ -413,102 +461,112 @@ def create_comfyui_project(
     project_folder_path, models_folder_path, id, name, launcher_json=None
 ):
     project_folder_path = os.path.abspath(project_folder_path)
-    models_folder_path = os.path.abspath(models_folder_path)
 
-    assert not os.path.exists(
-        project_folder_path
-    ), f"Project folder already exists: {project_folder_path}"
-    os.makedirs(project_folder_path)
+    try:
+        models_folder_path = os.path.abspath(models_folder_path)
 
-    set_launcher_state_data(
-        project_folder_path,
-        {"id":id,"name":name, "status_message": "Downloading ComfyUI...", "state": "download_comfyui"},
-    )
-    # Modify the subprocess.run calls to capture and log the stdout
-    run_command(
-        ["git", "clone", COMFYUI_REPO_URL, os.path.join(project_folder_path, 'comfyui')],
-    )
+        assert not os.path.exists(
+            project_folder_path
+        ), f"Project folder already exists: {project_folder_path}"
+        os.makedirs(project_folder_path)
 
-    if launcher_json:
-        comfyui_commit_hash = launcher_json["snapshot_json"]["comfyui"]
-        if comfyui_commit_hash:
-            run_command(
-                ["git", "checkout", comfyui_commit_hash],
-                cwd=os.path.join(project_folder_path, 'comfyui'),
-            )
-        launcher_json['workflow_json'] = normalize_model_filepaths_in_workflow_json(launcher_json['workflow_json'])
-
-    
-    # move the comfyui/web/index.html file to comfyui/web/comfyui_index.html
-    os.rename(
-        os.path.join(project_folder_path, "comfyui", "web", "index.html"),
-        os.path.join(project_folder_path, "comfyui", "web", "comfyui_index.html"),
-    )
-
-    # copy the web/comfy_frame.html file to comfyui/web/index.html
-    shutil.copy(
-        os.path.join("web", "comfy_frame.html"),
-        os.path.join(project_folder_path, "comfyui", "web", "index.html"),
-    )
-
-    # remove the models folder that exists in comfyui and symlink the shared_models folder as models
-    if os.path.exists(os.path.join(project_folder_path, "comfyui", "models")):
-        shutil.rmtree(
-            os.path.join(project_folder_path, "comfyui", "models"), ignore_errors=True
+        set_launcher_state_data(
+            project_folder_path,
+            {"id":id,"name":name, "status_message": "Downloading ComfyUI...", "state": "download_comfyui"},
+        )
+        # Modify the subprocess.run calls to capture and log the stdout
+        run_command(
+            ["git", "clone", COMFYUI_REPO_URL, os.path.join(project_folder_path, 'comfyui')],
         )
 
-    if not os.path.exists(models_folder_path):
-        setup_initial_models_folder(models_folder_path)
+        if launcher_json:
+            comfyui_commit_hash = launcher_json["snapshot_json"]["comfyui"]
+            if comfyui_commit_hash:
+                run_command(
+                    ["git", "checkout", comfyui_commit_hash],
+                    cwd=os.path.join(project_folder_path, 'comfyui'),
+                )
+            launcher_json['workflow_json'] = normalize_model_filepaths_in_workflow_json(launcher_json['workflow_json'])
 
-    # create a folder in project folder/comfyui/models that is a symlink to the models folder
-    create_symlink(models_folder_path, os.path.join(project_folder_path, "comfyui", "models"))
+        
+        # move the comfyui/web/index.html file to comfyui/web/comfyui_index.html
+        os.rename(
+            os.path.join(project_folder_path, "comfyui", "web", "index.html"),
+            os.path.join(project_folder_path, "comfyui", "web", "comfyui_index.html"),
+        )
 
-    set_launcher_state_data(
-        project_folder_path,
-        {"status_message": "Installing ComfyUI...", "state": "install_comfyui"},
-    )
+        # copy the web/comfy_frame.html file to comfyui/web/index.html
+        shutil.copy(
+            os.path.join("web", "comfy_frame.html"),
+            os.path.join(project_folder_path, "comfyui", "web", "index.html"),
+        )
 
-    # create a new virtualenv in project folder/venv
-    create_virtualenv(os.path.join(project_folder_path, 'venv'))
+        # remove the models folder that exists in comfyui and symlink the shared_models folder as models
+        if os.path.exists(os.path.join(project_folder_path, "comfyui", "models")):
+            shutil.rmtree(
+                os.path.join(project_folder_path, "comfyui", "models"), ignore_errors=True
+            )
 
-    # activate the virtualenv + install comfyui requirements
-    run_command_in_project_venv(
-        project_folder_path,
-        f"pip install -r {os.path.join(project_folder_path, 'comfyui', 'requirements.txt')}",
-    )
+        if not os.path.exists(models_folder_path):
+            setup_initial_models_folder(models_folder_path)
 
-    set_launcher_state_data(
-        project_folder_path,
-        {
-            "status_message": "Installing custom nodes...",
-            "state": "install_custom_nodes",
-        },
-    )
+        # create a folder in project folder/comfyui/models that is a symlink to the models folder
+        create_symlink(models_folder_path, os.path.join(project_folder_path, "comfyui", "models"))
 
-    # install default custom nodes
-    install_default_custom_nodes(project_folder_path, launcher_json)
+        set_launcher_state_data(
+            project_folder_path,
+            {"status_message": "Installing ComfyUI...", "state": "install_comfyui"},
+        )
 
-    setup_custom_nodes_from_snapshot(project_folder_path, launcher_json)
+        # create a new virtualenv in project folder/venv
+        create_virtualenv(os.path.join(project_folder_path, 'venv'))
 
-    # install pip requirements
-    if launcher_json and "pip_requirements" in launcher_json:
-        install_pip_reqs(project_folder_path, launcher_json["pip_requirements"])
+        # activate the virtualenv + install comfyui requirements
+        run_command_in_project_venv(
+            project_folder_path,
+            f"pip install -r {os.path.join(project_folder_path, 'comfyui', 'requirements.txt')}",
+        )
 
-    # download all necessary files
-    set_launcher_state_data(
-        project_folder_path,
-        {
-            "status_message": "Downloading models & other files...",
-            "state": "download_files",
-        },
-    )
+        set_launcher_state_data(
+            project_folder_path,
+            {
+                "status_message": "Installing custom nodes...",
+                "state": "install_custom_nodes",
+            },
+        )
 
-    setup_files_from_launcher_json(project_folder_path, launcher_json)
-    set_default_workflow_from_launcher_json(project_folder_path, launcher_json)
+        # install default custom nodes
+        install_default_custom_nodes(project_folder_path, launcher_json)
 
-    set_launcher_state_data(
-        project_folder_path, {"status_message": "Ready", "state": "ready"}
-    )
+        setup_custom_nodes_from_snapshot(project_folder_path, launcher_json)
+
+        # install pip requirements
+        if launcher_json and "pip_requirements" in launcher_json:
+            install_pip_reqs(project_folder_path, launcher_json["pip_requirements"])
+
+        # download all necessary files
+        set_launcher_state_data(
+            project_folder_path,
+            {
+                "status_message": "Downloading models & other files...",
+                "state": "download_files",
+            },
+        )
+
+        setup_files_from_launcher_json(project_folder_path, launcher_json)
+        set_default_workflow_from_launcher_json(project_folder_path, launcher_json)
+
+        if launcher_json:
+            with open(os.path.join(project_folder_path, "launcher.json"), "w") as f:
+                json.dump(launcher_json, f)
+
+        set_launcher_state_data(
+            project_folder_path, {"status_message": "Ready", "state": "ready"}
+        )
+    except:
+        # remove the project folder if an error occurs
+        shutil.rmtree(project_folder_path, ignore_errors=True)
+        raise
 
 def is_port_in_use(port: int) -> bool:
     import socket

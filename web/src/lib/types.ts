@@ -33,3 +33,37 @@ export type Project = {
     project_folder_path: string,
     last_modified: number
 }
+
+export type Suggestion = {
+    filename: string,
+    source: "hf" | "civitai",
+    filepath: string,
+    hf_file_id: number | null,
+    civitai_file_id: number | null,
+    url: string,
+    node_type: string,
+    sha256_checksum: string | null | undefined
+}
+
+export type Source = {
+    type: "hf" | "civitai"
+    url: string | null,
+    file_id: number | null
+}
+
+export type MissingModel = {
+    filename: string,
+    node_type: string,
+    suggestions: Suggestion[],
+    dest_relative_path: string;
+    // backup_models: { id: string, file_name: string, link: string, type: string }[],
+    // resolved: boolean,
+    // new_file_name: string
+}
+
+export type ResolvedMissingModelFile = {
+    filename: string,
+    node_type: string,
+    dest_relative_path: string,
+    source: Source
+}
