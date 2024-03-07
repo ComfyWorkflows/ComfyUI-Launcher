@@ -45,6 +45,8 @@ COMFYUI_REPO_URL = "https://github.com/comfyanonymous/ComfyUI.git"
 
 MAX_DOWNLOAD_ATTEMPTS = 3
 
+MAX_NUM_ALTERNATIVE_DOWNLOADS_TO_ATTEMPT = 3 # when the requested file is not found, we will attempt to download the same file from a different source
+
 CUSTOM_NODES_TO_IGNORE_FROM_SNAPSHOTS = ["ComfyUI-ComfyWorkflows", "ComfyUI-Manager"]
 
 CW_ENDPOINT = os.environ.get("CW_ENDPOINT", "https://comfyworkflows.com/")
