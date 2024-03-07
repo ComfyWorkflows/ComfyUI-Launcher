@@ -47,7 +47,7 @@ MAX_DOWNLOAD_ATTEMPTS = 3
 
 CUSTOM_NODES_TO_IGNORE_FROM_SNAPSHOTS = ["ComfyUI-ComfyWorkflows", "ComfyUI-Manager"]
 
-CW_ENDPOINT = os.environ.get("CW_ENDPOINT", "http://bore.pub:24819/")
+CW_ENDPOINT = os.environ.get("CW_ENDPOINT", "https://comfyworkflows.com")
 
 CONFIG_FILEPATH = "./config.json"
 
@@ -333,9 +333,7 @@ def setup_files_from_launcher_json(project_folder_path, launcher_json):
                                         pb.update(len(chunk))
                                         if chunk:
                                             f.write(chunk)
-                        print(f"({dest_path}) expected checksum: {sha256_checksum} | computed checksum: {compute_sha256_checksum(dest_path)}")
                         if compute_sha256_checksum(dest_path) == sha256_checksum:
-                            print(f"computed checksum: {compute_sha256_checksum(dest_path)} equals key: {sha256_checksum} for relative path: {dest_relative_path}")
                             download_successful = True
                             if dest_relative_path in missing_download_files:
                                 missing_download_files.remove(dest_relative_path)
@@ -366,7 +364,6 @@ def setup_files_from_launcher_json(project_folder_path, launcher_json):
 
 
 def get_launcher_json_for_workflow_json(workflow_json, resolved_missing_models, skip_model_validation):
-    print(f"going in strong w/ CW_ENDPOINT: {CW_ENDPOINT}")
     response = requests.post(
         f"{CW_ENDPOINT}/api/comfyui-launcher/setup_workflow_json?skipModelValidation={skip_model_validation}",
         json={"workflow": workflow_json, "isWindows": os.name == "nt", "resolved_missing_models": resolved_missing_models},
