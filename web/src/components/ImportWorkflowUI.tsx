@@ -99,9 +99,9 @@ function ImportWorkflowUI() {
             console.log("DATA:", data);
             if (!data.success && data.missing_models?.length > 0) {
                 console.log(`SUCCESS fr is false && missing_models length is greater than 0! data.success: ${data.success}. data.missing_models: ${data.missing_models}`)
-                toast.error(data.error);
                 setMissingModels(data.missing_models);
             } else if (!data.success && !!data.error) {
+                console.error("error in import workflow mut:", data.error);
                 toast.error(data.error);
             } else {
                 navigate('/')
@@ -172,6 +172,9 @@ function ImportWorkflowUI() {
 
     useEffect(() => {
         setProjectStatusDialogOpen(importProjectMutation.isPending);
+        if (importProjectMutation.isPending) {
+            setConfirmOnlyPartiallyResolvingOpen(false);
+        }
     }, [importProjectMutation.isPending])
 
 
@@ -267,7 +270,7 @@ function ImportWorkflowUI() {
                 <DialogContent className="sm:max-w-[425px]">
                     <DialogHeader>
                         <DialogTitle>Importing project...</DialogTitle>
-                        <DialogDescription>Setting up ComfyUI, installing custom nodes, downloading models</DialogDescription>
+                        <DialogDescription>Setting up ComfyUI, installing custom nodes, downloading models. This might take a few minutes. Do not close this page.</DialogDescription>
                     </DialogHeader>
                     <div className='flex justify-center items-center'>
                         <Loader2Icon className="animate-spin h-10 w-10 text-gray-700" />
