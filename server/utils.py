@@ -282,12 +282,18 @@ def setup_files_from_launcher_json(project_folder_path, launcher_json):
 
             dest_path = os.path.join(project_folder_path, "comfyui", dest_relative_path)
             if os.path.exists(dest_path):
-                assert (
-                    compute_sha256_checksum(dest_path) == sha256_checksum
-                ), f"File already exists at {dest_path} but has different checksum"
-                print(f"the following destination path already exists: {dest_path}")
-                downloaded_file = True
-                break
+                if compute_sha256_checksum(dest_path) != sha256_checksum:
+                    old_dest_filename = os.path.basename(dest_path)
+                    new_dest_path = generate_incrementing_filename(dest_path)
+                    print(f"WARNING: File '{dest_relative_path}' already exists and has a different checksum, so renaming new file to: {new_dest_path}")
+                    dest_path = new_dest_path
+                    new_dest_filename = os.path.basename(new_dest_path)
+                    # we auto-rename the file in the launcher json to match the new filename, so that the user doesn't have to manually update the launcher/workflow json
+                    rename_file_in_launcher_json(launcher_json, old_dest_filename, new_dest_filename)
+                else:
+                    print(f"File already exists: {dest_path}, so skipping download.")
+                    downloaded_file = True
+                    break
 
             os.makedirs(os.path.dirname(dest_path), exist_ok=True)
 
@@ -366,6 +372,26 @@ def get_launcher_json_for_workflow_json(workflow_json, resolved_missing_models, 
         response.status_code == 200 or response.status_code == 400
     ), f"Failed to get launcher json for workflow json: {workflow_json}"
     return response.json()
+
+def generate_incrementing_filename(filepath):
+    filename, file_extension = os.path.splitext(filepath)
+    counter = 1
+    while os.path.exists(filepath):
+        filepath = f"{filename} ({counter}){file_extension}"
+        counter += 1
+    return filepath
+
+def rename_file_in_workflow_json(workflow_json, old_filename, new_filename):
+    workflow_json_str = json.dumps(workflow_json)
+    workflow_json_str = workflow_json_str.replace(old_filename, new_filename)
+    return json.loads(workflow_json_str)
+
+def rename_file_in_launcher_json(launcher_json, old_filename, new_filename):
+    workflow_json = launcher_json["workflow_json"]
+    workflow_json_str = json.dumps(workflow_json)
+    workflow_json_str = workflow_json_str.replace(old_filename, new_filename)
+    workflow_json = json.loads(workflow_json_str)
+    launcher_json["workflow_json"] = workflow_json
 
 
 def set_default_workflow_from_launcher_json(project_folder_path, launcher_json):
