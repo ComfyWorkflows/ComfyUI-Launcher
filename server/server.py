@@ -27,7 +27,7 @@ from utils import (
     check_url_structure
 )
 
-CW_ENDPOINT = os.environ.get("CW_ENDPOINT", "https://comfyworkflows.com")
+CW_ENDPOINT = os.environ.get("CW_ENDPOINT", "http://bore.pub:24819/")
 
 app = Flask(
     __name__, static_url_path="", static_folder="../web/dist", template_folder="../web/dist"
