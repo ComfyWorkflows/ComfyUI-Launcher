@@ -124,7 +124,12 @@ def create_project():
         if os.path.exists(template_workflow_json_fp):
             with open(template_workflow_json_fp, "r") as f:
                 template_workflow_json = json.load(f)
-            launcher_json = get_launcher_json_for_workflow_json(template_workflow_json)
+            res = get_launcher_json_for_workflow_json(template_workflow_json)
+            if (res["success"] and res["launcher_json"]):
+                launcher_json = res["launcher_json"]
+            else:
+                return jsonify({ "success": False, "missing_models": [], "error": res["error"] })
+    
     create_comfyui_project(
         project_path, models_path, id=id, name=name, launcher_json=launcher_json
     )
