@@ -288,6 +288,7 @@ def setup_files_from_launcher_json(project_folder_path, launcher_json):
                     dest_path = new_dest_path
                     new_dest_filename = os.path.basename(new_dest_path)
                     # we auto-rename the file in the launcher json to match the new filename, so that the user doesn't have to manually update the launcher/workflow json
+                    # TODO: Later, we need to update this to only replace the filename within its specific node type (since multiple nodes can refer to a common filename, but they would be different files)
                     rename_file_in_launcher_json(launcher_json, old_dest_filename, new_dest_filename)
                 else:
                     print(f"File already exists: {dest_path}, so skipping download.")
