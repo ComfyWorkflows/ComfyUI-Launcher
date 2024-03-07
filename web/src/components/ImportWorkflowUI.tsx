@@ -1,14 +1,25 @@
 'use client';
 
-import React, { useCallback, useEffect, useMemo } from 'react'
+import React, { useCallback, useEffect, useMemo, useState } from 'react'
 import { useDropzone } from 'react-dropzone'
 import { Button } from './ui/button';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from './ui/dialog';
-import { Label } from './ui/label';
 import { Input } from './ui/input';
 import { Loader2Icon } from 'lucide-react';
 import { useNavigate } from "react-router-dom";
+import { MissingModel, ResolvedMissingModelFile, Source } from '@/lib/types';
+import {
+    Card,
+    CardContent,
+    CardDescription,
+    CardHeader,
+    CardTitle,
+} from "@/components/ui/card"
+import { Label } from "@/components/ui/label"
+import { toast } from "sonner"
+import MissingModelItem from './MissingModelItem';
+
 
 const baseStyle = {
     flex: 1,
@@ -38,6 +49,7 @@ const rejectStyle = {
     borderColor: '#ff1744'
 };
 
+
 function ImportWorkflowUI() {
     const [isServerSide, setIsServerSide] = React.useState(true)
     const [importJson, setImportJson] = React.useState<string>();
@@ -53,28 +65,116 @@ function ImportWorkflowUI() {
     const [importProjectDialogOpen, setImportProjectDialogOpen] = React.useState(false)
     const [projectStatusDialogOpen, setProjectStatusDialogOpen] = React.useState(false)
 
+    const [missingModels, setMissingModels] = React.useState<MissingModel[]>([]);
+    const [resolvedMissingModels, setResolvedMissingModels] = React.useState<ResolvedMissingModelFile[]>([]);
+    const [resolvedAllModels, setResolvedAllModels] = useState(false);
+    const [confirmOnlyPartiallyResolvingOpen, setConfirmOnlyPartiallyResolvingOpen] = useState(false);
 
     const importProjectMutation = useMutation({
-        mutationFn: async ({ import_json, name }: { import_json: string, name: string }) => {
+        mutationFn: async ({ import_json, name, partiallyResolved }: { import_json: string, name: string, partiallyResolved?: boolean }) => {
+            console.log("importProjectMutation. entered function!")
             const final_import_json = JSON.parse(import_json)
+            const uniqueFilenames = new Set();
+            const uniqueResolvedMissingModels = resolvedMissingModels.filter((model) => {
+                if (uniqueFilenames.has(model.filename)) {
+                    return false;
+                }
+                uniqueFilenames.add(model.filename);
+                return true;
+            });
+            console.log("importProjectMutation final_import_json:", final_import_json);
+            console.log("importProjectMutation uniqueResolvedMissingModels:", uniqueResolvedMissingModels);
+            // console.log("importProjectMutation skippedMissingModels:", skippedMissingModels);
+            console.log("importProjectMutation name:", name);
+            const partiallyResolvedBool = partiallyResolved ? true : false;
+            console.log("importProjectMutation partiallyResolvedBool:", partiallyResolvedBool);
             const response = await fetch(`/api/import_project`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json'
                 },
-                body: JSON.stringify({ import_json: final_import_json, name })
+                body: JSON.stringify({ import_json: final_import_json, resolved_missing_models: uniqueResolvedMissingModels, skipping_model_validation: partiallyResolvedBool, name })
             })
             const data = await response.json()
+            console.log("DATA:", data);
+            if (!data.success && data.missing_models?.length > 0) {
+                console.log(`SUCCESS fr is false && missing_models length is greater than 0! data.success: ${data.success}. data.missing_models: ${data.missing_models}`)
+                setMissingModels(data.missing_models);
+            } else if (!data.success && !!data.error) {
+                console.error("error in import workflow mut:", data.error);
+                toast.error(data.error);
+            } else {
+                navigate('/')
+            }
             return data
         },
         onSuccess: async () => {
             await queryClient.invalidateQueries({ queryKey: ['projects'] })
-            navigate('/')
+        }
+    })
+
+    const resolveMissingModelMutationWithSuggestion = useMutation({
+        mutationFn: async ({ filename, node_type, dest_relative_path, source }: { filename: string, node_type: string, dest_relative_path: string, source: Source }) => {
+            if (!filename || !node_type || !source) {
+                toast.error("something went wrong when resolving your model. please try again.");
+                return;
+            }
+            
+            try {
+                // const newItem = { filename: filename, node_type: node_type, source: source };
+                // const newSet = new Set(resolvedMissingModels);
+                // newSet.add(newItem);
+                // setResolvedMissingModels(newSet);
+                setResolvedMissingModels([...resolvedMissingModels, { filename: filename, node_type: node_type, dest_relative_path: dest_relative_path, source: source }]);
+            } catch (error: unknown) {
+                toast.error("something went wrong when resolving your model. please try again.");
+                return;
+            }
+
+            toast.success("successfully resolved")
+
+            return;
+        }
+    })
+
+    const unResolveMissingModelMutationWithSuggestion = useMutation({
+        mutationFn: async ({ filename }: { filename: string }) => {
+            if (!filename) {
+                toast.error("something went wrong when attempting to edit your model. please try again.");
+                return;
+            }
+            
+            try {
+                // const itemToRemove = { filename: "example", node_type: "example" };
+                // const updatedSet = new Set([...resolvedMissingModels].filter(item => item !== itemToRemove));
+                // setResolvedMissingModels(updatedSet);
+                setResolvedMissingModels(resolvedMissingModels.filter((missingModel) => missingModel.filename !== filename));
+            } catch (error: unknown) {
+                toast.error("something went wrong when attempting to edit your model. please try again.");
+                return;
+            }
+
+            // toast.success("successfully resolved")
+
+            return;
         }
     })
 
     useEffect(() => {
+        if (missingModels.length > 0 && resolvedMissingModels.length > 0 && missingModels.length === resolvedMissingModels.length) {
+            console.log("RESOLVED all missing models")
+            setResolvedAllModels(true);
+        } else {
+            console.log("HAVE NOT RESOLVED all missing models")
+            setResolvedAllModels(false);
+        }
+    }, [missingModels, resolvedMissingModels])
+
+    useEffect(() => {
         setProjectStatusDialogOpen(importProjectMutation.isPending);
+        if (importProjectMutation.isPending) {
+            setConfirmOnlyPartiallyResolvingOpen(false);
+        }
     }, [importProjectMutation.isPending])
 
 
@@ -170,11 +270,35 @@ function ImportWorkflowUI() {
                 <DialogContent className="sm:max-w-[425px]">
                     <DialogHeader>
                         <DialogTitle>Importing project...</DialogTitle>
-                        <DialogDescription>Setting up ComfyUI, installing custom nodes, downloading models</DialogDescription>
+                        <DialogDescription>Setting up ComfyUI, installing custom nodes, downloading models. This might take a few minutes. Do not close this page.</DialogDescription>
                     </DialogHeader>
                     <div className='flex justify-center items-center'>
                         <Loader2Icon className="animate-spin h-10 w-10 text-gray-700" />
                     </div>
+                </DialogContent>
+            </Dialog>
+
+            <Dialog onOpenChange={(open) => setConfirmOnlyPartiallyResolvingOpen(open)} open={confirmOnlyPartiallyResolvingOpen}>
+                <DialogContent className="sm:max-w-[425px]">
+                    <DialogHeader>
+                        <DialogTitle>Are you sure you want to skip resolving all models?</DialogTitle>
+                        <DialogDescription>You will probably face errors when running the workflow in ComfyUI and might have to upload replacement models to run the workflow.</DialogDescription>
+                    </DialogHeader>
+                    <DialogFooter>
+                        <Button onClick={(e) => {
+                            e.preventDefault();
+                            setConfirmOnlyPartiallyResolvingOpen(false);
+                        }}>
+                            Cancel
+                        </Button>
+                        <Button onClick={(e) => {
+                            e.preventDefault();
+                            if (!importJson) return;
+                            importProjectMutation.mutate({ import_json: importJson, name: projectName, partiallyResolved: true })
+                        }}>
+                            Yes, skip
+                        </Button>
+                    </DialogFooter>
                 </DialogContent>
             </Dialog>
 
@@ -202,11 +326,30 @@ function ImportWorkflowUI() {
                     </aside>
                 </div>
 
+                {missingModels.length > 0 &&
+                <Card className="bg-[#0a0a0a] backdrop-blur-xl border-2 border-[#444] w-full" >
+                    <CardHeader>
+                        <CardTitle className='text-white'>{resolvedAllModels ? 'All unrecognized models have been resolved.' : 'These models were not recognized'}</CardTitle>
+                        <CardDescription className='text-[#999]'>{resolvedAllModels ? 'Please try importing again.' : 'Replace missing models with the models that are available to avoid getting errors.'}</CardDescription>
+                    </CardHeader>
+                    <CardContent className="flex flex-col gap-6 space-y-5">
+                        {missingModels.map((missing_model) => { //iterate through missingModels instead
+                        return (
+                            <MissingModelItem key={`${missing_model.filename}_${missing_model.node_type}_${missing_model.dest_relative_path}`} missingModel={missing_model} resolveMutationToUse={resolveMissingModelMutationWithSuggestion} unResolveMutationToUse={unResolveMissingModelMutationWithSuggestion} />
+                        )})}
+                    </CardContent>
+                </Card>}
+
+
                 <div className='mt-5'>
                     <Button variant="default" disabled={!importJson} onClick={(e) => {
                         e.preventDefault();
                         if (!importJson) return;
-                        setImportProjectDialogOpen(true);
+                        if (missingModels.length > 0 && !resolvedAllModels) {
+                            setConfirmOnlyPartiallyResolvingOpen(true);
+                        } else {
+                            setImportProjectDialogOpen(true);
+                        }
                     }}>Import</Button>
                 </div>
             </div>
