@@ -313,6 +313,7 @@ def setup_files_from_launcher_json(project_folder_path, launcher_json):
             for download_url in download_urls:
                 if download_successful:
                     break
+                num_attempts = 0
                 while num_attempts < MAX_DOWNLOAD_ATTEMPTS:
                     try:
                         headers = {}
