@@ -35,20 +35,11 @@ https://github.com/ComfyWorkflows/ComfyUI-Launcher/assets/33400216/aa17680d-eee5
 
 ## Quick start
 
-Note: these instructions will involve mounting files from your local clone of this repo branch (new-docker-setup) ONLY until we test this branch and push the new docker image definition for `thecooltechguy/comfyui_launcher`. After we do this, you won't have to clone anything for the docker option.
-
 ### Option 1: Docker (recommended)
 
 Only works for **Linux** & **Windows (WSL)**. For **macOS**, use Option 2.
 
 ```
-#clone the new branch so that the image uses the new code
-git clone https://github.com/ComfyWorkflows/comfyui-launcher launcher-new-docker-setup #or change this second arg to whatever name you want
-cd comfyui-launcher/
-git checkout new-docker-setup
-cd ../ #go back out to run docker command below
-
-#run the container (mounting files from the repo branch you cloned above)
 docker run \
 --gpus all \
 --rm \
@@ -56,9 +47,7 @@ docker run \
 -p 4000-4100:4000-4100 \
 -v $(pwd)/comfyui_launcher_models:/app/server/models \
 -v $(pwd)/comfyui_launcher_projects:/app/server/projects \
--v $(pwd)/launcher/server/utils.py:/app/server/utils.py \
--v $(pwd)/launcher/server/server.py:/app/server/server.py \
--it thecooltechguy/comfyui_launcher 
+-it thecooltechguy/comfyui_launcher:new-docker-setup
 ```
 
 Open http://localhost:4000 in your browser
