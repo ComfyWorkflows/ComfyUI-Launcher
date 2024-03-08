@@ -59,7 +59,6 @@ Works for **Windows (WSL)**, **Linux**, & **macOS**
 ```
 git clone https://github.com/ComfyWorkflows/comfyui-launcher
 cd comfyui-launcher/
-chmod +x run.sh
 ```
 
 #### Start ComfyUI Launcher
