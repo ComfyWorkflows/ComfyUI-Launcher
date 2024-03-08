@@ -44,7 +44,7 @@ docker run \
 --gpus all \
 --rm \
 --name comfyui_launcher \
---net=host \
+-p 7000-7100:7000-7100 \
 -v $(pwd)/comfyui_launcher_models:/app/server/models \
 -v $(pwd)/comfyui_launcher_projects:/app/server/projects \
 -it thecooltechguy/comfyui_launcher
