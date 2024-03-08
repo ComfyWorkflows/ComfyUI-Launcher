@@ -38,6 +38,7 @@ https://github.com/ComfyWorkflows/ComfyUI-Launcher/assets/33400216/aa17680d-eee5
 ### Option 1: Docker (recommended)
 
 Only works for **Linux** & **Windows (WSL)**. For **macOS**, use Option 2.
+
 Note: If you use **Windows** and this method does **not** work for you, please try following the instructions in this [new-docker-setup](https://github.com/ComfyWorkflows/ComfyUI-Launcher/tree/new-docker-setup) branch we're testing. If you're still facing issues, please let us know in the *temp-windows-help* forum on our discord.
 
 ```
