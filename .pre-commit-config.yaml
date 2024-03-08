@@ -1,4 +1,11 @@
 repos:
+  - repo: https://github.com/pre-commit/mirrors-prettier
+    rev: "" # Use the sha or tag you want to point at
+    hooks:
+      - id: prettier
+        entry: cd web && prettier --write --ignore-unknown
+        files: '^web/.*\.(js|jsx|ts|tsx|css|scss|sass|html|json)$'
+        stages: [commit]
   - repo: local
     hooks:
       - id: build-web-ui
