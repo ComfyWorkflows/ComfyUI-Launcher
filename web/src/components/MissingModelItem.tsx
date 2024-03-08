@@ -219,4 +219,5 @@ function MissingModelItem({
   }
 }
 
-export default MissingModelItem;
+
+export default MissingModelItem

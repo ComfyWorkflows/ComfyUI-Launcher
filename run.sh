@@ -1,3 +1,5 @@
+#!/bin/bash
+
 if [ ! -d "venv" ]; then
   echo "Creating virtual environment for ComfyUI Launcher...\n\n"
   python3 -m venv venv
