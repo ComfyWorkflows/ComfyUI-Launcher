@@ -35,6 +35,8 @@ https://github.com/ComfyWorkflows/ComfyUI-Launcher/assets/33400216/aa17680d-eee5
 
 ## Quick start
 
+Note: these instructions will involve mounting files from your local clone of this repo branch (new-docker-setup) ONLY until we test this branch and push the new docker image definition for `thecooltechguy/comfyui_launcher`. After we do this, you won't have to clone anything for the docker option.
+
 ### Option 1: Docker (recommended)
 
 Only works for **Linux** & **Windows (WSL)**. For **macOS**, use Option 2.
@@ -68,6 +70,7 @@ Works for **Windows (WSL)**, **Linux**, & **macOS**
 ```
 git clone https://github.com/ComfyWorkflows/comfyui-launcher
 cd comfyui-launcher/
+git checkout new-docker-setup
 chmod +x run.sh
 ```
 
