@@ -1,5 +1,5 @@
-import { Nav } from "@/components/Nav";
-import ImportWorkflowUI from "@/components/ImportWorkflowUI";
+import { Nav } from '@/components/Nav'
+import ImportWorkflowUI from '@/components/ImportWorkflowUI'
 
 export default function ImportWorkflowPage() {
     return (
@@ -10,5 +10,5 @@ export default function ImportWorkflowPage() {
 
             <ImportWorkflowUI />
         </main>
-    );
+    )
 }

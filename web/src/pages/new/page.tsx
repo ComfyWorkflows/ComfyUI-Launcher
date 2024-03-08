@@ -1,5 +1,5 @@
-import { Nav } from "@/components/Nav";
-import NewWorkflowUI from "@/components/NewWorkflowUI";
+import { Nav } from '@/components/Nav'
+import NewWorkflowUI from '@/components/NewWorkflowUI'
 
 export default function NewWorkflowPage() {
     return (
@@ -10,5 +10,5 @@ export default function NewWorkflowPage() {
 
             <NewWorkflowUI />
         </main>
-    );
+    )
 }
