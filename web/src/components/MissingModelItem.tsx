@@ -1,4 +1,4 @@
-"use client";
+'use client'
 
 import {
   Loader2Icon,
@@ -219,4 +219,4 @@ function MissingModelItem({
   }
 }
 
-export default MissingModelItem;
+export default MissingModelItem
