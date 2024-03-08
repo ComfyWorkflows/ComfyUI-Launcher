@@ -569,11 +569,16 @@ def is_port_in_use(port: int) -> bool:
     import socket
     with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
         return s.connect_ex(('localhost', port)) == 0
-
-def find_free_port():
-    with socket.socket() as s:
-        s.bind(('', 0))            # Bind to a free port provided by the host.
-        return s.getsockname()[1]  # Return the port number assigned.
+    
+def find_free_port(start_port, end_port):
+    for port in range(start_port, end_port + 1):
+        with socket.socket() as s:
+            try:
+                s.bind(('', port))
+                return port
+            except OSError:
+                pass  # Port is already in use, try the next one
+    return None  # No free port found in the range
 
 def create_symlink(source, target):
     if os.name == 'nt':  # Check if running on Windows

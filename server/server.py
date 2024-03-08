@@ -201,7 +201,7 @@ def start_project(id):
     assert launcher_state["state"] == "ready", f"Project with id {id} is not ready yet"
 
     # find a free port
-    port = find_free_port()
+    port = find_free_port(7000, 7100)
     assert port, "No free port found"
     assert not is_port_in_use(port), f"Port {port} is already in use"
 
