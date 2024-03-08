@@ -45,6 +45,8 @@ def list_projects():
     projects = []
     for proj_folder in os.listdir(PROJECTS_DIR):
         full_proj_path = os.path.join(PROJECTS_DIR, proj_folder)
+        if not os.path.isdir(full_proj_path):
+            continue
         launcher_state, _ = get_launcher_state(full_proj_path)
         if not launcher_state:
             continue
