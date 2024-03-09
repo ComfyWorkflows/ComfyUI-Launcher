@@ -35,7 +35,7 @@ https://github.com/ComfyWorkflows/ComfyUI-Launcher/assets/33400216/aa17680d-eee5
 
 ## Quick start
 
-### Option 1: Docker (recommended)
+### Option 1: Docker (Linux only)
 
 Only works for **Linux**. For **macOS**, use Option 2. For **Windows**, try Option 3.
 
@@ -52,7 +52,7 @@ docker run \
 
 Open http://localhost:4000 in your browser
 
-### Option 2: Manual setup
+### Option 2: Manual setup (MacOS, Linux, and Windows)
 Works for **Windows (WSL)**, **Linux**, & **macOS**
 
 #### Installation (one-time setup)
@@ -67,7 +67,7 @@ cd comfyui-launcher/
 ```
 Open http://localhost:4000 in your browser
 
-### Option 3: Docker on Windows (experimental)
+### Option 3: Docker (Windows and Linux)
 So Option 1 won't work on Windows due to differences in how Docker handles host networking, and Option 2 is more of a headache than simply using Docker (python is required).
 For Windows setup using Docker, we've created a new experimental branch at [new-docker-setup](https://github.com/ComfyWorkflows/ComfyUI-Launcher/tree/new-docker-setup). 
 
