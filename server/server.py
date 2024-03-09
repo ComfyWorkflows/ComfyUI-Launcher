@@ -212,10 +212,11 @@ def start_project(id):
     # assert pid, "Failed to start the project"
 
     # start the project
-    print(f"USING PORT: {port}")
-    command = f"python main.py --port {port}"
+    command = f"python main.py --port {port} --listen 0.0.0.0"
     if os.name == "nt":
         command = f"start \"\" cmd /c \"{command}\""
+    
+    print(f"USING COMMAND: {command}. PORT: {port}")
 
     pid = run_command_in_project_comfyui_venv(
         project_path, command, in_bg=True
