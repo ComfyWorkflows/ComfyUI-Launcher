@@ -16,6 +16,7 @@ import {
     DialogTitle,
 } from './ui/dialog'
 import { useNavigate } from 'react-router-dom'
+import { Checkbox } from './ui/checkbox'
 
 type WorkflowTemplateProps = {
     item: WorkflowTemplateItem
@@ -32,16 +33,24 @@ function WorkflowTemplate({
         mutationFn: async ({
             template_id,
             name,
+            useFixedPort,
+            port,
         }: {
             template_id: WorkflowTemplateId
             name: string
+            useFixedPort: boolean
+            port: number
         }) => {
             const response = await fetch(`/api/create_project`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
                 },
-                body: JSON.stringify({ template_id, name }),
+                body: JSON.stringify({
+                    template_id,
+                    name,
+                    port: useFixedPort ? port : undefined,
+                }),
             })
             const data = await response.json()
             return data
@@ -53,6 +62,9 @@ function WorkflowTemplate({
     })
 
     const [projectName, setProjectName] = React.useState('')
+    const [useFixedPort, setUseFixedPort] = React.useState(false)
+    const [fixedPort, setFixedPort] = React.useState(4001)
+
     const [createProjectDialogOpen, setCreateProjectDialogOpen] =
         React.useState(false)
     const [projectStatusDialogOpen, setProjectStatusDialogOpen] =
@@ -85,6 +97,47 @@ function WorkflowTemplate({
                                 onChange={(e) => setProjectName(e.target.value)}
                             />
                         </div>
+                        <div className="grid grid-cols-3 items-center gap-4">
+                            <Label htmlFor="useFixedPort" className="text-sm">
+                                Use a static port
+                            </Label>
+                            <Checkbox
+                                id="useFixedPort"
+                                checked={useFixedPort}
+                                onCheckedChange={(checked) => {
+                                    // @ts-ignore
+                                    setUseFixedPort(checked)
+                                }}
+                            />
+                        </div>
+                        {useFixedPort && (
+                            <div className="grid grid-cols-4 items-center gap-4">
+                                <Label htmlFor="port" className="text-right">
+                                    Port
+                                </Label>
+                                <Input
+                                    id="port"
+                                    type="number"
+                                    required={useFixedPort}
+                                    placeholder=""
+                                    // className="col-span-3"
+                                    value={fixedPort}
+                                    onChange={(e) =>
+                                        setFixedPort(parseInt(e.target.value))
+                                    }
+                                />
+                            </div>
+                        )}
+                        {useFixedPort && (
+                            <div className="grid grid-cols-1 items-center gap-4">
+                                <p className="text-xs text-neutral-500">
+                                    If you're using Docker or running this on a
+                                    remote server, make sure that the port
+                                    number you chose satisfies any necessary
+                                    port-forwarding rules.
+                                </p>
+                            </div>
+                        )}
                     </div>
                     <DialogFooter>
                         <Button
@@ -94,6 +147,8 @@ function WorkflowTemplate({
                                 createProjectMutation.mutate({
                                     template_id: id,
                                     name: projectName,
+                                    useFixedPort,
+                                    port: fixedPort,
                                 })
                                 setCreateProjectDialogOpen(false)
                             }}
@@ -113,7 +168,8 @@ function WorkflowTemplate({
                         <DialogTitle>Creating project...</DialogTitle>
                         <DialogDescription>
                             Setting up ComfyUI, installing custom nodes,
-                            downloading models
+                            downloading models. This might take a few minutes.
+                            Do not close this page.
                         </DialogDescription>
                     </DialogHeader>
                     <div className="flex justify-center items-center">
