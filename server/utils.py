@@ -470,7 +470,7 @@ def get_project_port(id):
     project_path = os.path.join(PROJECTS_DIR, id)
     if os.path.exists(os.path.join(project_path, "port.txt")):
         with open(os.path.join(project_path, "port.txt"), "r") as f:
-            return int(f.read())
+            return int(f.read().strip())
     return find_free_port()
 
 def create_comfyui_project(
