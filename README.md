@@ -37,9 +37,7 @@ https://github.com/ComfyWorkflows/ComfyUI-Launcher/assets/33400216/aa17680d-eee5
 
 ### Option 1: Docker (recommended)
 
-Only works for **Linux** & **Windows (WSL)**. For **macOS**, use Option 2.
-
-Note: If you use **Windows** and this method does **not** work for you, please try following the instructions in this [new-docker-setup](https://github.com/ComfyWorkflows/ComfyUI-Launcher/tree/new-docker-setup) branch we're testing. If you're still facing issues, please let us know in the *temp-windows-help* forum on our discord.
+Only works for **Linux**. For **macOS**, use Option 2. For **Windows**, try Option 3.
 
 ```
 docker run \
@@ -69,6 +67,24 @@ cd comfyui-launcher/
 ```
 Open http://localhost:4000 in your browser
 
+### Option 3: Docker on Windows (experimental)
+So Option 1 won't work on Windows due to differences in how Docker handles host networking, and Option 2 is more of a headache than simply using Docker (python is required).
+For Windows setup using Docker, we've created a new experimental branch at [new-docker-setup](https://github.com/ComfyWorkflows/ComfyUI-Launcher/tree/new-docker-setup). 
+
+Please try following the instructions in that repo **or** try running the following command (same command from the new-docker-setup branch):
+
+```
+docker run \
+--gpus all \
+--rm \
+--name comfyui_launcher \
+-p 4000-4100:4000-4100 \
+-v $(pwd)/comfyui_launcher_models:/app/server/models \
+-v $(pwd)/comfyui_launcher_projects:/app/server/projects \
+-it thecooltechguy/comfyui_launcher:new-docker-setup
+```
+
+If you're still facing issues, please let us know in the *temp-windows-help* forum on our [discord](https://discord.gg/QvGC8CFGDU)
 
 ## Updating
 ### Option 1: Docker
