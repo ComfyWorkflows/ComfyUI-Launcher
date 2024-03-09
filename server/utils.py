@@ -10,6 +10,7 @@ import subprocess
 import threading
 from tqdm import tqdm
 from urllib.parse import urlparse
+from settings import PROJECTS_DIR
 
 def check_url_structure(url):
     # Check for huggingface.co URL structure
@@ -465,8 +466,15 @@ def install_pip_reqs(project_folder_path, pip_reqs):
         f"pip install -r {os.path.join(project_folder_path, 'requirements.txt')}",
     )
 
+def get_project_port(id):
+    project_path = os.path.join(PROJECTS_DIR, id)
+    if os.path.exists(os.path.join(project_path, "port.txt")):
+        with open(os.path.join(project_path, "port.txt"), "r") as f:
+            return int(f.read())
+    return find_free_port()
+
 def create_comfyui_project(
-    project_folder_path, models_folder_path, id, name, launcher_json=None
+    project_folder_path, models_folder_path, id, name, launcher_json=None, port=None
 ):
     project_folder_path = os.path.abspath(project_folder_path)
 
@@ -567,6 +575,10 @@ def create_comfyui_project(
         if launcher_json:
             with open(os.path.join(project_folder_path, "launcher.json"), "w") as f:
                 json.dump(launcher_json, f)
+
+        if port is not None:
+            with open(os.path.join(project_folder_path, "port.txt"), "w") as f:
+                f.write(str(port))
 
         set_launcher_state_data(
             project_folder_path, {"status_message": "Ready", "state": "ready"}

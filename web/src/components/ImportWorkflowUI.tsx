@@ -26,6 +26,7 @@ import {
 import { Label } from '@/components/ui/label'
 import { toast } from 'sonner'
 import MissingModelItem from './MissingModelItem'
+import { Checkbox } from './ui/checkbox'
 
 const baseStyle = {
     flex: 1,
@@ -71,6 +72,8 @@ function ImportWorkflowUI() {
         React.useState(false)
     const [projectStatusDialogOpen, setProjectStatusDialogOpen] =
         React.useState(false)
+    const [useFixedPort, setUseFixedPort] = React.useState(false)
+    const [fixedPort, setFixedPort] = React.useState(4001)
 
     const [missingModels, setMissingModels] = React.useState<MissingModel[]>([])
     const [resolvedMissingModels, setResolvedMissingModels] = React.useState<
@@ -87,12 +90,15 @@ function ImportWorkflowUI() {
             import_json,
             name,
             partiallyResolved,
+            useFixedPort,
+            port,
         }: {
             import_json: string
             name: string
             partiallyResolved?: boolean
+            useFixedPort: boolean
+            port: number
         }) => {
-            console.log('importProjectMutation. entered function!')
             const final_import_json = JSON.parse(import_json)
             const uniqueFilenames = new Set()
             const uniqueResolvedMissingModels = resolvedMissingModels.filter(
@@ -104,21 +110,8 @@ function ImportWorkflowUI() {
                     return true
                 }
             )
-            console.log(
-                'importProjectMutation final_import_json:',
-                final_import_json
-            )
-            console.log(
-                'importProjectMutation uniqueResolvedMissingModels:',
-                uniqueResolvedMissingModels
-            )
-            // console.log("importProjectMutation skippedMissingModels:", skippedMissingModels);
-            console.log('importProjectMutation name:', name)
+
             const partiallyResolvedBool = partiallyResolved ? true : false
-            console.log(
-                'importProjectMutation partiallyResolvedBool:',
-                partiallyResolvedBool
-            )
             const response = await fetch(`/api/import_project`, {
                 method: 'POST',
                 headers: {
@@ -129,17 +122,15 @@ function ImportWorkflowUI() {
                     resolved_missing_models: uniqueResolvedMissingModels,
                     skipping_model_validation: partiallyResolvedBool,
                     name,
+                    useFixedPort,
+                    port: useFixedPort ? port : undefined,
                 }),
             })
             const data = await response.json()
-            console.log('DATA:', data)
             if (!data.success && data.missing_models?.length > 0) {
-                console.log(
-                    `SUCCESS fr is false && missing_models length is greater than 0! data.success: ${data.success}. data.missing_models: ${data.missing_models}`
-                )
                 setMissingModels(data.missing_models)
             } else if (!data.success && !!data.error) {
-                console.error('error in import workflow mut:', data.error)
+                console.error('error importing workflow:', data.error)
                 toast.error(data.error)
             } else {
                 navigate('/')
@@ -329,6 +320,48 @@ function ImportWorkflowUI() {
                                 onChange={(e) => setProjectName(e.target.value)}
                             />
                         </div>
+
+                        <div className="grid grid-cols-3 items-center gap-4">
+                            <Label htmlFor="useFixedPort" className="text-sm">
+                                Use a static port
+                            </Label>
+                            <Checkbox
+                                id="useFixedPort"
+                                checked={useFixedPort}
+                                onCheckedChange={(checked) => {
+                                    // @ts-ignore
+                                    setUseFixedPort(checked)
+                                }}
+                            />
+                        </div>
+                        {useFixedPort && (
+                            <div className="grid grid-cols-4 items-center gap-4">
+                                <Label htmlFor="port" className="text-right">
+                                    Port
+                                </Label>
+                                <Input
+                                    id="port"
+                                    type="number"
+                                    required={useFixedPort}
+                                    placeholder=""
+                                    // className="col-span-3"
+                                    value={fixedPort}
+                                    onChange={(e) =>
+                                        setFixedPort(parseInt(e.target.value))
+                                    }
+                                />
+                            </div>
+                        )}
+                        {useFixedPort && (
+                            <div className="grid grid-cols-1 items-center gap-4">
+                                <p className="text-xs text-neutral-500">
+                                    If you're using Docker or running this on a
+                                    remote server, make sure that the port
+                                    number you chose satisfies any necessary
+                                    port-forwarding rules.
+                                </p>
+                            </div>
+                        )}
                     </div>
                     <DialogFooter>
                         <Button
@@ -339,6 +372,8 @@ function ImportWorkflowUI() {
                                 importProjectMutation.mutate({
                                     import_json: importJson,
                                     name: projectName,
+                                    useFixedPort,
+                                    port: fixedPort,
                                 })
                                 setImportProjectDialogOpen(false)
                             }}
@@ -402,6 +437,8 @@ function ImportWorkflowUI() {
                                     import_json: importJson,
                                     name: projectName,
                                     partiallyResolved: true,
+                                    useFixedPort,
+                                    port: fixedPort,
                                 })
                             }}
                         >
