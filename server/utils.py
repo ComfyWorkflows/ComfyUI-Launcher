@@ -236,6 +236,10 @@ def setup_custom_nodes_from_snapshot(project_folder_path, launcher_json):
                 f"pip install -r {os.path.join(custom_node_path, 'requirements_post.txt')}",
             )
 
+        install_script_path = os.path.join(custom_node_path, "install.py")
+        if os.path.exists(install_script_path):
+            run_command_in_project_venv(project_folder_path, f"python {install_script_path}")
+
 
 def compute_sha256_checksum(file_path):
     buf_size = 1024
