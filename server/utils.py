@@ -54,6 +54,9 @@ CONFIG_FILEPATH = "./config.json"
 
 DEFAULT_CONFIG = {"credentials": {"civitai": {"apikey": ""}}}
 
+START_PORT = 4001
+END_PORT = 4100
+
 import os
 from typing import List, Dict, Optional, Union
 import json
@@ -471,7 +474,7 @@ def get_project_port(id):
     if os.path.exists(os.path.join(project_path, "port.txt")):
         with open(os.path.join(project_path, "port.txt"), "r") as f:
             return int(f.read().strip())
-    return find_free_port()
+    return find_free_port(START_PORT, END_PORT)
 
 def create_comfyui_project(
     project_folder_path, models_folder_path, id, name, launcher_json=None, port=None
