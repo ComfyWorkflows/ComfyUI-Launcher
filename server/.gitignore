@@ -4,3 +4,4 @@ models/
 projects/
 default_custom_nodes/
 test.py
+celery_results/
