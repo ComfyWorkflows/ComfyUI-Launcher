@@ -3,6 +3,7 @@ import shutil
 import signal
 import subprocess
 import time
+import torch
 from flask import Flask, jsonify, request, render_template
 from showinfm import show_in_file_manager
 from settings import PROJECTS_DIR, MODELS_DIR, TEMPLATES_DIR
@@ -218,6 +219,13 @@ def start_project(id):
 
     # start the project
     command = f"python main.py --port {port} --listen 0.0.0.0"
+
+    # check if gpus are available, if they aren't, use the cpu
+    mps_available = hasattr(torch.backends, "mps") and torch.backends.mps.is_available()
+    if not torch.cuda.is_available() and not mps_available:
+        print("WARNING: No GPU/MPS detected, so launching ComfyUI with CPU...")
+        command += " --cpu"
+
     if os.name == "nt":
         command = f"start \"\" cmd /c \"{command}\""
     
