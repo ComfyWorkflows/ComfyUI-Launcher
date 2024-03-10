@@ -1,5 +1,4 @@
 # ComfyUI Launcher (BETA)
-
 Run any ComfyUI workflow w/ **ZERO setup**.
 
 Need help? Join our Discord!
@@ -36,32 +35,41 @@ https://github.com/ComfyWorkflows/ComfyUI-Launcher/assets/33400216/aa17680d-eee5
 
 ## Quick start
 
-### Option 1: Docker (recommended)
+### Option 1: Docker (Linux & Windows)
 
-Only works for **Linux** & **Windows (WSL)**. For **macOS**, use Option 2.
-
+#### Linux
 ```
 docker run \
---gpus all \
+--gpus all \ # remove this line if you don't have a GPU or if you're on MacOS
 --rm \
 --name comfyui_launcher \
 -p 4000-4100:4000-4100 \
 -v $(pwd)/comfyui_launcher_models:/app/server/models \
 -v $(pwd)/comfyui_launcher_projects:/app/server/projects \
--it thecooltechguy/comfyui_launcher:new-docker-setup
+-it thecooltechguy/comfyui_launcher
+```
+
+### Windows
+```
+docker run ^
+--gpus all ^ # remove this line if you don't have a GPU
+--rm ^
+--name comfyui_launcher ^
+-p 4000-4100:4000-4100 ^
+-v %cd%/comfyui_launcher_models:/app/server/models ^
+-v %cd%/comfyui_launcher_projects:/app/server/projects ^
+-it thecooltechguy/comfyui_launcher
 ```
 
 Open http://localhost:4000 in your browser
 
-### Option 2: Manual setup
-Works for **Windows (WSL)**, **Linux**, & **macOS**
+### Option 2: Manual setup (macOS, Linux, and Windows)
+Works for **Windows (WSL - Windows Subsystem for Linux)**, **Linux**, & **macOS**
 
 #### Installation (one-time setup)
 ```
 git clone https://github.com/ComfyWorkflows/comfyui-launcher
 cd comfyui-launcher/
-git checkout new-docker-setup
-chmod +x run.sh
 ```
 
 #### Start ComfyUI Launcher
@@ -70,6 +78,8 @@ chmod +x run.sh
 ```
 Open http://localhost:4000 in your browser
 
+
+If you're facing issues w/ the installation, please make a post in the *bugs* forum on our [discord](https://discord.gg/QvGC8CFGDU)
 
 ## Updating
 ### Option 1: Docker
@@ -83,7 +93,6 @@ git pull
 ```
 
 ## Coming soon
-- Better handling of missing model files
 - Native Windows support (w/o requiring WSL)
 - Better way to manage your workflows locally
 - Run workflows w/ Cloud GPUs
