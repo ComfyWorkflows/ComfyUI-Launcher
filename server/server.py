@@ -16,6 +16,7 @@ from utils import (
     get_config,
     get_launcher_json_for_workflow_json,
     get_launcher_state,
+    get_project_port,
     is_launcher_json_format,
     is_port_in_use,
     run_command,
@@ -45,9 +46,12 @@ def list_projects():
     projects = []
     for proj_folder in os.listdir(PROJECTS_DIR):
         full_proj_path = os.path.join(PROJECTS_DIR, proj_folder)
+        if not os.path.isdir(full_proj_path):
+            continue
         launcher_state, _ = get_launcher_state(full_proj_path)
         if not launcher_state:
             continue
+        project_port = get_project_port(proj_folder)
         projects.append(
             {
                 "id": proj_folder,
@@ -55,6 +59,7 @@ def list_projects():
                 "project_folder_name": proj_folder,
                 "project_folder_path": full_proj_path,
                 "last_modified": os.stat(full_proj_path).st_mtime,
+                "port" : project_port
             }
         )
 
@@ -68,6 +73,7 @@ def get_project(id):
     project_path = os.path.join(PROJECTS_DIR, id)
     assert os.path.exists(project_path), f"Project with id {id} does not exist"
     launcher_state, _ = get_launcher_state(project_path)
+    project_port = get_project_port(id)
     return jsonify(
         {
             "id": id,
@@ -75,6 +81,7 @@ def get_project(id):
             "project_folder_name": id,
             "project_folder_path": project_path,
             "last_modified": os.stat(project_path).st_mtime,
+            "port" : project_port
         }
     )
 
@@ -104,6 +111,7 @@ def create_project():
     request_data = request.get_json()
     name = request_data["name"]
     template_id = request_data.get("template_id", "empty")
+    port = request_data.get("port")
 
     # set id to a folder friendly name of the project name (lowercase, no spaces, etc.)
     id = slugify(name)
@@ -131,7 +139,7 @@ def create_project():
                 return jsonify({ "success": False, "missing_models": [], "error": res["error"] })
     
     create_comfyui_project(
-        project_path, models_path, id=id, name=name, launcher_json=launcher_json
+        project_path, models_path, id=id, name=name, launcher_json=launcher_json, port=port
     )
     return jsonify({"success": True, "id": id})
 
@@ -143,6 +151,7 @@ def import_project():
     import_json = request_data["import_json"]
     resolved_missing_models = request_data["resolved_missing_models"]
     skipping_model_validation = request_data["skipping_model_validation"]
+    port = request_data.get("port")
     # skipping_model_validation = request_data.get("skipping_model_validation")
 
     # set id to a folder friendly name of the project name (lowercase, no spaces, etc.)
@@ -160,9 +169,7 @@ def import_project():
         print("Detected workflow json format, converting to launcher json format")
         #only resolve missing models for workflows w/ workflow json format
         skip_model_validation = True if skipping_model_validation else False
-        print(f"import_project value of skip_model_validation: {skip_model_validation}")
         if len(resolved_missing_models) > 0:
-            print(f"import_project entering for loop for resolved_missing_models: {resolved_missing_models}")
             for model in resolved_missing_models:
                 if (model["filename"] is None or model["node_type"] is None or model["dest_relative_path"] is None):
                     return jsonify({ "success": False, "error": f"one of the resolved models has an empty filename, node type, or destination path. please try again." })
@@ -173,9 +180,7 @@ def import_project():
                 elif (model["source"]["file_id"] is None and model["source"]["url"] is None):
                     return jsonify({ "success": False, "error": f"you didn't select one of the suggestions (or import a url) for the following missing file: {model['filename']}" })
             skip_model_validation = True
-        # print(f"value of import_json: {import_json}")
-        print(f"value of resolved_missing_models: {resolved_missing_models}") 
-        print(f"value of skip_model_validation: {skip_model_validation}") 
+
         res = get_launcher_json_for_workflow_json(import_json, resolved_missing_models, skip_model_validation)
         if (res["success"] and res["launcher_json"]):
             launcher_json = res["launcher_json"]
@@ -185,7 +190,7 @@ def import_project():
             print(f"something went wrong when fetching res from get_launcher_json_for_workflow_json: {res}")
             return
     create_comfyui_project(
-        project_path, models_path, id=id, name=name, launcher_json=launcher_json
+        project_path, models_path, id=id, name=name, launcher_json=launcher_json, port=port
     )
     return jsonify({"success": True, "id": id}) 
 
@@ -201,7 +206,7 @@ def start_project(id):
     assert launcher_state["state"] == "ready", f"Project with id {id} is not ready yet"
 
     # find a free port
-    port = find_free_port(4001, 4100)
+    port = get_project_port(id)
     assert port, "No free port found"
     assert not is_port_in_use(port), f"Port {port} is already in use"
 
