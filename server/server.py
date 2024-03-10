@@ -132,7 +132,7 @@ def create_project():
         if os.path.exists(template_workflow_json_fp):
             with open(template_workflow_json_fp, "r") as f:
                 template_workflow_json = json.load(f)
-            res = get_launcher_json_for_workflow_json(template_workflow_json)
+            res = get_launcher_json_for_workflow_json(template_workflow_json, resolved_missing_models=[], skip_model_validation=True)
             if (res["success"] and res["launcher_json"]):
                 launcher_json = res["launcher_json"]
             else:
