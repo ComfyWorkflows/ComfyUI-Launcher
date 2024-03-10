@@ -1,9 +1,11 @@
 #!/bin/bash
 
-echo "ComfyUI Launcher is starting...\n\n"
+echo "ComfyUI Launcher is starting..."
+echo
+echo
 
 # start Celery worker in the bg
-celery -A server worker --loglevel=info &
+celery -A server.celery_app --workdir=. worker --loglevel=ERROR &
 celery_worker_pid=$!
 
 python server.py

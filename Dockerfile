@@ -14,4 +14,4 @@ COPY server /app/server
 
 WORKDIR /app/server
 
-CMD ["entrypoint.sh"]
+CMD ["./entrypoint.sh"]

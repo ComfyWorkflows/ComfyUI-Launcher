@@ -2,21 +2,21 @@ import json
 import os
 import shutil
 from celery import shared_task
-from server.utils import COMFYUI_REPO_URL, create_symlink, create_virtualenv, install_default_custom_nodes, install_pip_reqs, normalize_model_filepaths_in_workflow_json, run_command, run_command_in_project_venv, set_default_workflow_from_launcher_json, set_launcher_state_data, setup_custom_nodes_from_snapshot, setup_files_from_launcher_json, setup_initial_models_folder
+from utils import COMFYUI_REPO_URL, create_symlink, create_virtualenv, install_default_custom_nodes, install_pip_reqs, normalize_model_filepaths_in_workflow_json, run_command, run_command_in_project_venv, set_default_workflow_from_launcher_json, set_launcher_state_data, setup_custom_nodes_from_snapshot, setup_files_from_launcher_json, setup_initial_models_folder
 
 @shared_task(ignore_result=False)
 def create_comfyui_project(
-    project_folder_path, models_folder_path, id, name, launcher_json=None, port=None
+    project_folder_path, models_folder_path, id, name, launcher_json=None, port=None, create_project_folder=True
 ):
     project_folder_path = os.path.abspath(project_folder_path)
+    models_folder_path = os.path.abspath(models_folder_path)
 
     try:
-        models_folder_path = os.path.abspath(models_folder_path)
-
-        assert not os.path.exists(
-            project_folder_path
-        ), f"Project folder already exists: {project_folder_path}"
-        os.makedirs(project_folder_path)
+        if create_project_folder:
+            assert not os.path.exists(project_folder_path), f"Project folder already exists at {project_folder_path}"
+            os.makedirs(project_folder_path)
+        else:
+            assert os.path.exists(project_folder_path), f"Project folder does not exist at {project_folder_path}"
 
         set_launcher_state_data(
             project_folder_path,

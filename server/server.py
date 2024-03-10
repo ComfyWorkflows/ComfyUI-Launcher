@@ -3,11 +3,10 @@ import shutil
 import signal
 import subprocess
 import time
-from server.tasks import create_comfyui_project
 import torch
 from flask import Flask, jsonify, request, render_template
 from showinfm import show_in_file_manager
-from settings import PROJECTS_DIR, MODELS_DIR, TEMPLATES_DIR
+from settings import CELERY_BROKER_DIR, CELERY_RESULTS_DIR, PROJECTS_DIR, MODELS_DIR, TEMPLATES_DIR
 import requests
 import os, psutil, sys
 from utils import (
@@ -28,6 +27,7 @@ from utils import (
     check_url_structure
 )
 from celery import Celery, Task
+from tasks import create_comfyui_project
 
 def celery_init_app(app: Flask) -> Celery:
     class FlaskTask(Task):
@@ -48,10 +48,14 @@ app = Flask(
 )
 app.config.from_mapping(
     CELERY=dict(
-        broker_url="filesystem://",
-        result_backend="file://celery_results",
-        task_ignore_result=True,
+        result_backend=f"file://{CELERY_RESULTS_DIR}",
+        broker_url=f"filesystem://",
+        broker_transport_options={
+            'data_folder_in': CELERY_BROKER_DIR,
+            'data_folder_out': CELERY_BROKER_DIR,
+        }
     ),
+    task_ignore_result=True,
 )
 celery_app = celery_init_app(app)
 
@@ -159,9 +163,22 @@ def create_project():
             else:
                 return jsonify({ "success": False, "missing_models": [], "error": res["error"] })
     
-    create_comfyui_project.delay(
-        project_path, models_path, id=id, name=name, launcher_json=launcher_json, port=port
+    print(f"Creating project with id {id} and name {name} from template {template_id}")
+
+    # set the project's first status message
+    assert not os.path.exists(
+        project_path
+    ), f"Project folder already exists: {project_path}"
+    os.makedirs(project_path)
+    set_launcher_state_data(
+        project_path,
+        {"id":id,"name":name, "status_message": "Downloading ComfyUI...", "state": "download_comfyui"},
     )
+
+    create_comfyui_project.delay(
+        project_path, models_path, id=id, name=name, launcher_json=launcher_json, port=port, create_project_folder=False
+    )
+    print("done")
     return jsonify({"success": True, "id": id})
 
 
@@ -210,9 +227,21 @@ def import_project():
         else:
             print(f"something went wrong when fetching res from get_launcher_json_for_workflow_json: {res}")
             return jsonify({ "success": False, "error": res["error"] })
+        
+    print(f"Creating project with id {id} and name {name} from imported json")
     
+    # set the project's first status message
+    assert not os.path.exists(
+        project_path
+    ), f"Project folder already exists: {project_path}"
+    os.makedirs(project_path)
+    set_launcher_state_data(
+        project_path,
+        {"id":id,"name":name, "status_message": "Downloading ComfyUI...", "state": "download_comfyui"},
+    )
+
     create_comfyui_project.delay(
-        project_path, models_path, id=id, name=name, launcher_json=launcher_json, port=port
+        project_path, models_path, id=id, name=name, launcher_json=launcher_json, port=port, create_project_folder=False
     )
     return jsonify({"success": True, "id": id}) 
 
