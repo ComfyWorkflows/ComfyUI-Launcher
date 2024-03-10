@@ -4,3 +4,5 @@ models/
 projects/
 default_custom_nodes/
 test.py
+.celery/
+control/

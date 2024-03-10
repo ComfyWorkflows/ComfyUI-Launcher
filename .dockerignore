@@ -5,3 +5,5 @@ server/models
 server/projects
 comfyui_launcher_models
 comfyui_launcher_projects
+celery_results
+server/.celery

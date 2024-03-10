@@ -13,6 +13,7 @@ function WorkflowsGridView() {
             const data = (await response.json()) as Project[]
             return data
         },
+        refetchInterval: 10_000, // refetch every 10 seconds
     })
 
     if (getProjectsQuery.isLoading) {

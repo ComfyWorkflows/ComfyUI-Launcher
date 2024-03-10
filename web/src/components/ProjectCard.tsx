@@ -121,8 +121,6 @@ function ProjectCard({ item }: ProjectCardProps) {
         deleteProjectMutation.isPending,
     ])
 
-    
-
     return (
         <>
             <Dialog
@@ -191,6 +189,10 @@ function ProjectCard({ item }: ProjectCardProps) {
                             ID: {item.id}
                         </p>
                     </div>
+                    {item.state.status_message && item.state.status_message.length > 0 && <div className="flex flex-row items-center space-x-2">
+                        {item.state.state !== "ready" && <Loader2Icon className="animate-spin h-4 w-4 text-gray-500" />}
+                        <p className='text-sm italic text-neutral-500'>{item.state.status_message}</p>
+                    </div>}
                     <div className="flex flex-row space-x-2">
                         {item.state.state === 'ready' && (
                             <Button
