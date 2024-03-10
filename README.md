@@ -35,25 +35,36 @@ https://github.com/ComfyWorkflows/ComfyUI-Launcher/assets/33400216/aa17680d-eee5
 
 ## Quick start
 
-### Option 1: Docker (Linux only)
+### Option 1: Docker (Linux & Windows)
 
-Only works for **Linux**. For **macOS**, use Option 2. For **Windows**, try Option 3.
-
+#### Linux
 ```
 docker run \
---gpus all \
+--gpus all \ # remove this line if you don't have a GPU or if you're on MacOS
 --rm \
 --name comfyui_launcher \
---net=host \
+-p 4000-4100:4000-4100 \
 -v $(pwd)/comfyui_launcher_models:/app/server/models \
 -v $(pwd)/comfyui_launcher_projects:/app/server/projects \
 -it thecooltechguy/comfyui_launcher
 ```
 
+### Windows
+```
+docker run ^
+--gpus all ^ # remove this line if you don't have a GPU
+--rm ^
+--name comfyui_launcher ^
+-p 4000-4100:4000-4100 ^
+-v %cd%/comfyui_launcher_models:/app/server/models ^
+-v %cd%/comfyui_launcher_projects:/app/server/projects ^
+-it thecooltechguy/comfyui_launcher
+```
+
 Open http://localhost:4000 in your browser
 
-### Option 2: Manual setup (MacOS, Linux, and Windows)
-Works for **Windows (WSL)**, **Linux**, & **macOS**
+### Option 2: Manual setup (macOS, Linux, and Windows)
+Works for **Windows (WSL - Windows Subsystem for Linux)**, **Linux**, & **macOS**
 
 #### Installation (one-time setup)
 ```
@@ -86,6 +97,8 @@ docker run \
 
 If you're still facing issues, please let us know in the *temp-windows-help* forum on our [discord](https://discord.gg/QvGC8CFGDU)
 
+If you're facing issues w/ the installation, please make a post in the *bugs* forum on our [discord](https://discord.gg/QvGC8CFGDU)
+
 ## Updating
 ### Option 1: Docker
 ```
@@ -98,7 +111,6 @@ git pull
 ```
 
 ## Coming soon
-- Better handling of missing model files
 - Native Windows support (w/o requiring WSL)
 - Better way to manage your workflows locally
 - Run workflows w/ Cloud GPUs
