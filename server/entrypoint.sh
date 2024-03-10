@@ -5,7 +5,7 @@ echo
 echo
 
 # start Celery worker in the bg
-celery -A server.celery_app --workdir=. worker --loglevel=ERROR &
+celery -A server.celery_app --workdir=. worker --loglevel=INFO &
 celery_worker_pid=$!
 
 python server.py
