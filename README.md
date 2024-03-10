@@ -91,6 +91,14 @@ docker pull thecooltechguy/comfyui_launcher
 git pull
 ```
 
+## Usage
+
+#### Using an existing ComfyUI models folder
+When starting the ComfyUI Launcher, you can set the `MODELS_DIR` environment variable to the path of your existing ComfyUI models folder. This will allow you to use the models you've already downloaded. By default, they're stored in `./server/models`
+
+#### Using a different folder to store your Launcher projects
+When starting the ComfyUI Launcher, you can set the `PROJECTS_DIR` environment variable to the path of the folder you'd like to use to store your projects. By default, they're stored in `./server/projects`
+
 ## Donations
 
 If you find our work useful for you, we'd appreciate any donations! Thank you!
