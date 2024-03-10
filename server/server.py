@@ -3,6 +3,7 @@ import shutil
 import signal
 import subprocess
 import time
+import torch
 from flask import Flask, jsonify, request, render_template
 from showinfm import show_in_file_manager
 from settings import PROJECTS_DIR, MODELS_DIR, TEMPLATES_DIR
@@ -12,7 +13,6 @@ from utils import (
     CONFIG_FILEPATH,
     DEFAULT_CONFIG,
     create_comfyui_project,
-    find_free_port,
     get_config,
     get_launcher_json_for_workflow_json,
     get_launcher_state,
@@ -217,9 +217,18 @@ def start_project(id):
     # assert pid, "Failed to start the project"
 
     # start the project
-    command = f"python main.py --port {port}"
+    command = f"python main.py --port {port} --listen 0.0.0.0"
+
+    # check if gpus are available, if they aren't, use the cpu
+    mps_available = hasattr(torch.backends, "mps") and torch.backends.mps.is_available()
+    if not torch.cuda.is_available() and not mps_available:
+        print("WARNING: No GPU/MPS detected, so launching ComfyUI with CPU...")
+        command += " --cpu"
+
     if os.name == "nt":
         command = f"start \"\" cmd /c \"{command}\""
+    
+    print(f"USING COMMAND: {command}. PORT: {port}")
 
     pid = run_command_in_project_comfyui_venv(
         project_path, command, in_bg=True
