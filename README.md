@@ -91,6 +91,12 @@ docker pull thecooltechguy/comfyui_launcher
 git pull
 ```
 
+## Donations
+
+If you find our work useful for you, we'd appreciate any donations! Thank you!
+
+<a href="https://www.buymeacoffee.com/comfy.workflows" target="_blank"><img src="https://cdn.buymeacoffee.com/buttons/default-orange.png" alt="Buy Me A Coffee" height="41" width="174"></a>
+
 ## Coming soon
 - Native Windows support (w/o requiring WSL)
 - Better way to manage your workflows locally
