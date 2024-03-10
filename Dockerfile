@@ -14,4 +14,4 @@ COPY server /app/server
 
 WORKDIR /app/server
 
-CMD ["python", "server.py"]
+CMD ["./entrypoint.sh"]
