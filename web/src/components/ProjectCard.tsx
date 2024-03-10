@@ -22,6 +22,24 @@ type ProjectCardProps = {
     item: Project
 }
 
+const getProjectURL = (port: number) => {
+    // get the window location
+    const { location } = window
+
+    // Support proxying for Runpod
+    // check if the current origin matches this pattern: https://<pod id>-<port number>.proxy.runpod.net
+    const match = location.origin.match(
+        /^https:\/\/([a-zA-Z0-9]+)-([0-9]+)\.proxy\.runpod\.net$/
+    )
+    if (match) {
+        // if it does, replace the port number with the new port number
+        return `https://${match[1]}-${port}.proxy.runpod.net`
+    }
+
+    // otherwise, replace the port in the current origin with the new port number
+    return location.origin.replace(/:[0-9]+$/, `:${port}`)
+}
+
 function ProjectCard({ item }: ProjectCardProps) {
     const queryClient = useQueryClient()
 
@@ -102,6 +120,8 @@ function ProjectCard({ item }: ProjectCardProps) {
         stopProjectMutation.isPending,
         deleteProjectMutation.isPending,
     ])
+
+    
 
     return (
         <>
@@ -187,7 +207,7 @@ function ProjectCard({ item }: ProjectCardProps) {
                             !!item.state.port && (
                                 <Button variant="default" asChild>
                                     <a
-                                        href={`http://localhost:${item.state.port}`}
+                                        href={getProjectURL(item.state.port)}
                                         target="_blank"
                                     >
                                         Open
