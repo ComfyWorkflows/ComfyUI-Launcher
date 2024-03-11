@@ -7,7 +7,7 @@ import animateDiffThumbnail from '@/assets/workflow_templates/animate_diff/thumb
 import svdThumbnail from '@/assets/workflow_templates/svd/thumbnail.webp'
 import upscaleThumbnail from '@/assets/workflow_templates/upscale/thumbnail.webp'
 import img2imgThumbnail from '@/assets/workflow_templates/img2img/thumbnail.webp'
-import vid2vidThumbnail from '@/assets/workflow_templates/vid2vid/thumbnail.mp4'
+import vid2vidThumbnail from '@/assets/workflow_templates/vid2vid/thumbnail.webp'
 import img2vidThumbnail from '@/assets/workflow_templates/img2vid_svd/thumbnail.webp'
 import { useQuery } from '@tanstack/react-query'
 
@@ -55,7 +55,6 @@ const workflowTemplates: WorkflowTemplateItem[] = [
         title: 'Video to Video (vid2vid)',
         description: 'Stylize any input video (e.g. anime style)',
         thumbnail: vid2vidThumbnail,
-        isThumbnailVideo: true,
         credits:
             'https://comfyworkflows.com/workflows/84e00774-4a21-4555-b4dd-063eec3e604a',
     },
