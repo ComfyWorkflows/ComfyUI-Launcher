@@ -16,4 +16,7 @@ os.makedirs(os.path.join(os.environ.get("CELERY_DIR", ".celery"), "broker"), exi
 CELERY_RESULTS_DIR = os.path.join(os.environ.get("CELERY_DIR", ".celery"), "results")
 CELERY_BROKER_DIR = os.path.join(os.environ.get("CELERY_DIR", ".celery"), "broker")
 
-DISABLE_FIXED_PORTS = os.environ.get("DISABLE_FIXED_PORTS", "false").lower() == "true"
+PROXY_MODE = os.environ.get("PROXY_MODE", "false").lower() == "true"
+ALLOW_OVERRIDABLE_PORTS_PER_PROJECT = os.environ.get("ALLOW_OVERRIDABLE_PORTS_PER_PROJECT", "true").lower() == "true"
+PROJECT_MIN_PORT = int(os.environ.get("PROJECT_MIN_PORT", "4001"))
+PROJECT_MAX_PORT = int(os.environ.get("PROJECT_MAX_PORT", "4100"))

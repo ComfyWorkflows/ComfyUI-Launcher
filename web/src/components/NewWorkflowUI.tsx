@@ -2,13 +2,14 @@
 
 import WorkflowTemplate from './WorkflowTemplate'
 import { Masonry } from 'masonic'
-import { WorkflowTemplateItem } from '@/lib/types'
+import { Settings, WorkflowTemplateItem } from '@/lib/types'
 import animateDiffThumbnail from '@/assets/workflow_templates/animate_diff/thumbnail.webp'
 import svdThumbnail from '@/assets/workflow_templates/svd/thumbnail.webp'
 import upscaleThumbnail from '@/assets/workflow_templates/upscale/thumbnail.webp'
 import img2imgThumbnail from '@/assets/workflow_templates/img2img/thumbnail.webp'
 import vid2vidThumbnail from '@/assets/workflow_templates/vid2vid/thumbnail.mp4'
 import img2vidThumbnail from '@/assets/workflow_templates/img2vid_svd/thumbnail.webp'
+import { useQuery } from '@tanstack/react-query'
 
 const workflowTemplates: WorkflowTemplateItem[] = [
     {
@@ -70,6 +71,23 @@ const workflowTemplates: WorkflowTemplateItem[] = [
 ]
 
 function NewWorkflowUI() {
+    const getSettingsQuery = useQuery({
+        queryKey: ['settings'],
+        queryFn: async () => {
+            const response = await fetch(`/api/settings`)
+            const data = await response.json()
+            return data as Settings
+        },
+    })
+
+    if (getSettingsQuery.isError) {
+        return <div>Something went wrong, please refresh the page.</div>
+    }
+
+    if (getSettingsQuery.isLoading || !getSettingsQuery.data) {
+        return <div>Loading...</div>
+    }
+
     return (
         <div className="flex flex-col p-10">
             <div>
@@ -83,7 +101,7 @@ function NewWorkflowUI() {
                         columnWidth={350}
                         items={workflowTemplates}
                         render={(props) => (
-                            <WorkflowTemplate item={props.data} />
+                            <WorkflowTemplate settings={getSettingsQuery.data} item={props.data} />
                         )}
                     />
                 </div>

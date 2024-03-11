@@ -2,7 +2,7 @@
 
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
-import { WorkflowTemplateId, WorkflowTemplateItem } from '@/lib/types'
+import { Settings, WorkflowTemplateId, WorkflowTemplateItem } from '@/lib/types'
 import { DialogDescription } from '@radix-ui/react-dialog'
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { ExternalLinkIcon, Loader2Icon } from 'lucide-react'
@@ -20,10 +20,12 @@ import { Checkbox } from './ui/checkbox'
 
 type WorkflowTemplateProps = {
     item: WorkflowTemplateItem
+    settings: Settings
 }
 
 function WorkflowTemplate({
     item: { id, title, description, thumbnail, isThumbnailVideo, credits },
+    settings,
 }: WorkflowTemplateProps) {
     const isSelected = false // selectedAppId === id;
     const queryClient = useQueryClient()
@@ -97,46 +99,62 @@ function WorkflowTemplate({
                                 onChange={(e) => setProjectName(e.target.value)}
                             />
                         </div>
-                        <div className="grid grid-cols-3 items-center gap-4">
-                            <Label htmlFor="useFixedPort" className="text-sm">
-                                Use a static port
-                            </Label>
-                            <Checkbox
-                                id="useFixedPort"
-                                checked={useFixedPort}
-                                onCheckedChange={(checked) => {
-                                    // @ts-ignore
-                                    setUseFixedPort(checked)
-                                }}
-                            />
-                        </div>
-                        {useFixedPort && (
-                            <div className="grid grid-cols-4 items-center gap-4">
-                                <Label htmlFor="port" className="text-right">
-                                    Port
-                                </Label>
-                                <Input
-                                    id="port"
-                                    type="number"
-                                    required={useFixedPort}
-                                    placeholder=""
-                                    // className="col-span-3"
-                                    value={fixedPort}
-                                    onChange={(e) =>
-                                        setFixedPort(parseInt(e.target.value))
-                                    }
-                                />
-                            </div>
-                        )}
-                        {useFixedPort && (
-                            <div className="grid grid-cols-1 items-center gap-4">
-                                <p className="text-xs text-neutral-500">
-                                    If you're using Docker or running this on a
-                                    remote server, make sure that the port
-                                    number you chose satisfies any necessary
-                                    port-forwarding rules.
-                                </p>
-                            </div>
+
+                        {(settings.ALLOW_OVERRIDABLE_PORTS_PER_PROJECT === true) && (
+                            <>
+                                <div className="grid grid-cols-3 items-center gap-4">
+                                    <Label
+                                        htmlFor="useFixedPort"
+                                        className="text-sm"
+                                    >
+                                        Use a static port
+                                    </Label>
+                                    <Checkbox
+                                        id="useFixedPort"
+                                        checked={useFixedPort}
+                                        onCheckedChange={(checked) => {
+                                            // @ts-ignore
+                                            setUseFixedPort(checked)
+                                        }}
+                                    />
+                                </div>
+                                {useFixedPort && (
+                                    <div className="grid grid-cols-4 items-center gap-4">
+                                        <Label
+                                            htmlFor="port"
+                                            className="text-right"
+                                        >
+                                            Port
+                                        </Label>
+                                        <Input
+                                            id="port"
+                                            type="number"
+                                            required={useFixedPort}
+                                            min={settings.PROJECT_MIN_PORT}
+                                            max={settings.PROJECT_MAX_PORT}
+                                            placeholder=""
+                                            // className="col-span-3"
+                                            value={fixedPort}
+                                            onChange={(e) =>
+                                                setFixedPort(
+                                                    parseInt(e.target.value)
+                                                )
+                                            }
+                                        />
+                                    </div>
+                                )}
+                                {useFixedPort && (
+                                    <div className="grid grid-cols-1 items-center gap-4">
+                                        <p className="text-xs text-neutral-500">
+                                            If you're using Docker or running
+                                            this on a remote server, make sure
+                                            that the port number you chose
+                                            satisfies any necessary
+                                            port-forwarding rules.
+                                        </p>
+                                    </div>
+                                )}
+                            </>
                         )}
                     </div>
                     <DialogFooter>

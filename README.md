@@ -96,10 +96,30 @@ git pull
 
 ## Usage
 
-#### Using an existing ComfyUI models folder
+### Using a reverse proxy (advanced)
+If you're running ComfyUI Launcher behind a reverse proxy or in an environment where you can only expose a single port to access the Launcher and its workflow projects, you can run the Launcher with `PROXY_MODE=true` (only available for Docker).
+
+```
+docker run \
+--gpus all \ # remove this line if you don't have a GPU or if you're on MacOS
+--rm \
+--name comfyui_launcher \
+-p 4000:80 \
+-v $(pwd)/comfyui_launcher_models:/app/server/models \
+-v $(pwd)/comfyui_launcher_projects:/app/server/projects \
+-e PROXY_MODE=true \
+-it thecooltechguy/comfyui_launcher
+```
+
+Once the container is running, all you need to do is expose port 4000 to the outside world. This will allow you to access the Launcher and its workflow projects from a single port.
+
+Currently, `PROXY_MODE=true` only works with Docker, since NGINX is used within the container. 
+If you're running the Launcher manually, you'll need to set up a reverse proxy yourself.
+
+### Using an existing ComfyUI models folder
 When starting the ComfyUI Launcher, you can set the `MODELS_DIR` environment variable to the path of your existing ComfyUI models folder. This will allow you to use the models you've already downloaded. By default, they're stored in `./server/models`
 
-#### Using a different folder to store your Launcher projects
+### Using a different folder to store your Launcher projects
 When starting the ComfyUI Launcher, you can set the `PROJECTS_DIR` environment variable to the path of the folder you'd like to use to store your projects. By default, they're stored in `./server/projects`
 
 ## Donations

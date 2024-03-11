@@ -10,7 +10,7 @@ import subprocess
 import threading
 from tqdm import tqdm
 from urllib.parse import urlparse
-from settings import PROJECTS_DIR
+from settings import PROJECT_MAX_PORT, PROJECT_MIN_PORT, PROJECTS_DIR
 
 def check_url_structure(url):
     # Check for huggingface.co URL structure
@@ -53,9 +53,6 @@ CW_ENDPOINT = os.environ.get("CW_ENDPOINT", "https://comfyworkflows.com")
 CONFIG_FILEPATH = "./config.json"
 
 DEFAULT_CONFIG = {"credentials": {"civitai": {"apikey": ""}}}
-
-START_PORT = 4001
-END_PORT = 4100
 
 import os
 from typing import List, Dict, Optional, Union
@@ -474,7 +471,7 @@ def get_project_port(id):
     if os.path.exists(os.path.join(project_path, "port.txt")):
         with open(os.path.join(project_path, "port.txt"), "r") as f:
             return int(f.read().strip())
-    return find_free_port(START_PORT, END_PORT)
+    return find_free_port(PROJECT_MIN_PORT, PROJECT_MAX_PORT)
 
 def is_port_in_use(port: int) -> bool:
     import socket
