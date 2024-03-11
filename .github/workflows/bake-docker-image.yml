@@ -3,6 +3,7 @@ name: bake-docker-image
 on:
   push:
     branches: [ main ]
+  workflow_dispatch:
 
 jobs:
   docker:
