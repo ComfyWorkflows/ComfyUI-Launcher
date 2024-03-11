@@ -6,7 +6,7 @@ import time
 import torch
 from flask import Flask, jsonify, request, render_template
 from showinfm import show_in_file_manager
-from settings import ALLOW_OVERRIDABLE_PORTS_PER_PROJECT, CELERY_BROKER_DIR, CELERY_RESULTS_DIR, PROJECT_MAX_PORT, PROJECT_MIN_PORT, PROJECTS_DIR, MODELS_DIR, TEMPLATES_DIR
+from settings import ALLOW_OVERRIDABLE_PORTS_PER_PROJECT, CELERY_BROKER_DIR, CELERY_RESULTS_DIR, PROJECT_MAX_PORT, PROJECT_MIN_PORT, PROJECTS_DIR, MODELS_DIR, PROXY_MODE, TEMPLATES_DIR
 import requests
 import os, psutil, sys
 from utils import (
@@ -71,6 +71,7 @@ def api_settings():
         "PROJECT_MIN_PORT": PROJECT_MIN_PORT,
         "PROJECT_MAX_PORT": PROJECT_MAX_PORT,
         "ALLOW_OVERRIDABLE_PORTS_PER_PROJECT": ALLOW_OVERRIDABLE_PORTS_PER_PROJECT,
+        "PROXY_MODE": PROXY_MODE
     })
 
 @app.route("/api/projects", methods=["GET"])
@@ -164,7 +165,7 @@ def create_project():
         if os.path.exists(template_workflow_json_fp):
             with open(template_workflow_json_fp, "r") as f:
                 template_workflow_json = json.load(f)
-            res = get_launcher_json_for_workflow_json(template_workflow_json)
+            res = get_launcher_json_for_workflow_json(template_workflow_json, resolved_missing_models=[], skip_model_validation=True)
             if (res["success"] and res["launcher_json"]):
                 launcher_json = res["launcher_json"]
             else:
@@ -185,7 +186,6 @@ def create_project():
     create_comfyui_project.delay(
         project_path, models_path, id=id, name=name, launcher_json=launcher_json, port=port, create_project_folder=False
     )
-    print("done")
     return jsonify({"success": True, "id": id})
 
 

@@ -28,6 +28,7 @@ export type Settings = {
     PROJECT_MIN_PORT: number,
     PROJECT_MAX_PORT: number,
     ALLOW_OVERRIDABLE_PORTS_PER_PROJECT: boolean,
+    PROXY_MODE: boolean
 }
 
 export type ProjectState = {

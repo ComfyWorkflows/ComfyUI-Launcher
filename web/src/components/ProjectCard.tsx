@@ -1,6 +1,6 @@
 'use client'
 
-import { Project } from '@/lib/types'
+import { Project, Settings } from '@/lib/types'
 import { Button } from './ui/button'
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 import React, { useEffect } from 'react'
@@ -20,9 +20,10 @@ import { DialogDescription } from '@radix-ui/react-dialog'
 
 type ProjectCardProps = {
     item: Project
+    settings: Settings
 }
 
-const getProjectURL = (port: number) => {
+const getProjectURL = (port: number, settings: Settings) => {
     // get the window location
     const { location } = window
 
@@ -36,11 +37,15 @@ const getProjectURL = (port: number) => {
         return `https://${match[1]}-${port}.proxy.runpod.net`
     }
 
+    if (settings.PROXY_MODE) {
+        return `/comfy/${port}/`; // proxy mode
+    }
+
     // otherwise, replace the port in the current origin with the new port number
     return location.origin.replace(/:[0-9]+$/, `:${port}`)
 }
 
-function ProjectCard({ item }: ProjectCardProps) {
+function ProjectCard({ item, settings }: ProjectCardProps) {
     const queryClient = useQueryClient()
 
     const [deleteProjectDialogOpen, setDeleteProjectDialogOpen] =
@@ -209,7 +214,7 @@ function ProjectCard({ item }: ProjectCardProps) {
                             !!item.state.port && (
                                 <Button variant="default" asChild>
                                     <a
-                                        href={getProjectURL(item.state.port)}
+                                        href={getProjectURL(item.state.port, settings)}
                                         target="_blank"
                                     >
                                         Open
