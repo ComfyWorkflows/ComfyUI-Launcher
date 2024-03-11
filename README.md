@@ -1,3 +1,15 @@
+---
+title: ComfyUI Launcher
+emoji: 🪄
+colorFrom: red
+colorTo: red
+sdk: docker
+pinned: false
+license: agpl-3.0
+short_description: Run any ComfyUI workflow w/ ZERO setup (BETA)
+app_port: 4000
+---
+
 # ComfyUI Launcher (BETA)
 Run any ComfyUI workflow w/ **ZERO setup**.
 

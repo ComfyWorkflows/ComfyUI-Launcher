@@ -20,3 +20,4 @@ PROXY_MODE = os.environ.get("PROXY_MODE", "false").lower() == "true"
 ALLOW_OVERRIDABLE_PORTS_PER_PROJECT = os.environ.get("ALLOW_OVERRIDABLE_PORTS_PER_PROJECT", "true").lower() == "true"
 PROJECT_MIN_PORT = int(os.environ.get("PROJECT_MIN_PORT", "4001"))
 PROJECT_MAX_PORT = int(os.environ.get("PROJECT_MAX_PORT", "4100"))
+SERVER_PORT = int(os.environ.get("SERVER_PORT", "4000"))

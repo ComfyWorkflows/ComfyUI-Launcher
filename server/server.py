@@ -6,7 +6,7 @@ import time
 import torch
 from flask import Flask, jsonify, request, render_template
 from showinfm import show_in_file_manager
-from settings import ALLOW_OVERRIDABLE_PORTS_PER_PROJECT, CELERY_BROKER_DIR, CELERY_RESULTS_DIR, PROJECT_MAX_PORT, PROJECT_MIN_PORT, PROJECTS_DIR, MODELS_DIR, PROXY_MODE, TEMPLATES_DIR
+from settings import ALLOW_OVERRIDABLE_PORTS_PER_PROJECT, CELERY_BROKER_DIR, CELERY_RESULTS_DIR, PROJECT_MAX_PORT, PROJECT_MIN_PORT, PROJECTS_DIR, MODELS_DIR, PROXY_MODE, SERVER_PORT, TEMPLATES_DIR
 import requests
 import os, psutil, sys
 from utils import (
@@ -359,5 +359,5 @@ if __name__ == "__main__":
     os.makedirs(MODELS_DIR, exist_ok=True)
     if not os.path.exists(CONFIG_FILEPATH):
         set_config(DEFAULT_CONFIG)
-    print("Open http://localhost:4000 in your browser.")
-    app.run(host="0.0.0.0", debug=False, port=4000)
+    print(f"Open http://localhost:{SERVER_PORT} in your browser.")
+    app.run(host="0.0.0.0", debug=False, port=SERVER_PORT)
