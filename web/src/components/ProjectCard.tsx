@@ -232,8 +232,7 @@ function ProjectCard({ item, settings }: ProjectCardProps) {
                                 Stop
                             </Button>
                         )}
-                        {(item.state.state === 'ready' ||
-                            item.state.state === 'running') && (
+                        {
                             <Button
                                 onClick={(e) => {
                                     e.preventDefault()
@@ -243,7 +242,7 @@ function ProjectCard({ item, settings }: ProjectCardProps) {
                             >
                                 Delete
                             </Button>
-                        )}
+                        }
                     </div>
                 </div>
             </div>

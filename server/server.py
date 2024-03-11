@@ -183,9 +183,13 @@ def create_project():
         {"id":id,"name":name, "status_message": "Downloading ComfyUI...", "state": "download_comfyui"},
     )
 
-    create_comfyui_project.delay(
+    result = create_comfyui_project.delay(
         project_path, models_path, id=id, name=name, launcher_json=launcher_json, port=port, create_project_folder=False
     )
+
+    with open(os.path.join(project_path, "setup_task_id.txt"), "w") as f:
+        f.write(result.id)
+    
     return jsonify({"success": True, "id": id})
 
 
@@ -247,9 +251,13 @@ def import_project():
         {"id":id,"name":name, "status_message": "Downloading ComfyUI...", "state": "download_comfyui"},
     )
 
-    create_comfyui_project.delay(
+    result = create_comfyui_project.delay(
         project_path, models_path, id=id, name=name, launcher_json=launcher_json, port=port, create_project_folder=False
     )
+
+    with open(os.path.join(project_path, "setup_task_id.txt"), "w") as f:
+        f.write(result.id)
+    
     return jsonify({"success": True, "id": id}) 
 
 
@@ -336,6 +344,17 @@ def stop_project(id):
 def delete_project(id):
     project_path = os.path.join(PROJECTS_DIR, id)
     assert os.path.exists(project_path), f"Project with id {id} does not exist"
+
+    # stop the celery task if it's running
+    setup_task_id_fp = os.path.join(project_path, "setup_task_id.txt")
+    if os.path.exists(setup_task_id_fp):
+        with open(setup_task_id_fp, "r") as f:
+            setup_task_id = f.read()
+            if setup_task_id:
+                try:
+                    celery_app.control.revoke(setup_task_id, terminate=True)
+                except:
+                    pass
 
     # stop the project if it's running
     launcher_state, _ = get_launcher_state(project_path)
