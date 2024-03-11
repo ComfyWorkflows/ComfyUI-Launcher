@@ -4,18 +4,29 @@
 <head>
     <title>ComfyUI Launcher</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
-	<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-	<link href="https://fonts.googleapis.com/css2?family=Inter:wght@100..900&display=swap" rel="stylesheet">
-	<style type="text/css">
-		.inter-400 {
-			font-family: "Inter", sans-serif;
-			font-optical-sizing: auto;
-			font-weight: 400;
-			font-style: normal;
-			font-variation-settings:
-				"slnt" 0;
-		}
-	</style>
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@100..900&display=swap" rel="stylesheet">
+    <style type="text/css">
+        .inter-400 {
+            font-family: "Inter", sans-serif;
+            font-optical-sizing: auto;
+            font-weight: 400;
+            font-style: normal;
+            font-variation-settings: "slnt" 0;
+        }
+    </style>
+    <script type="text/javascript">
+        document.addEventListener("DOMContentLoaded", function() {
+            // Get the current URL's pathname
+            var currentPath = window.location.pathname;
+            // Ensure it ends with a "/"
+            if (!currentPath.endsWith('/')) {
+                currentPath += '/';
+            }
+            // Set the iframe src to currentPath + "comfyui_interface"
+            document.getElementById('comfyui-iframe').src = currentPath + "comfyui_interface";
+        });
+    </script>
 </head>
 
 <body style="margin: 0px; padding: 0px; height: 100%; width: 100%; display: flex; flex-direction: column;">
@@ -24,7 +35,7 @@
         <div class="inter-400" style="margin-left: 10px;">ComfyUI Launcher</div>
     </div>
 
-    <iframe src="/comfyui_interface" style="width: 100%; height: 100%; border: none;"></iframe>
+    <iframe id="comfyui-iframe" style="width: 100%; height: 100%; border: none;"></iframe>
 </body>
 
 </html>

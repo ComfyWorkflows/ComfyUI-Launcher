@@ -3,7 +3,7 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react'
 import { useDropzone } from 'react-dropzone'
 import { Button } from './ui/button'
-import { useMutation, useQueryClient } from '@tanstack/react-query'
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import {
     Dialog,
     DialogContent,
@@ -15,7 +15,12 @@ import {
 import { Input } from './ui/input'
 import { Loader2Icon } from 'lucide-react'
 import { useNavigate } from 'react-router-dom'
-import { MissingModel, ResolvedMissingModelFile, Source } from '@/lib/types'
+import {
+    MissingModel,
+    ResolvedMissingModelFile,
+    Settings,
+    Source,
+} from '@/lib/types'
 import {
     Card,
     CardContent,
@@ -66,6 +71,15 @@ function ImportWorkflowUI() {
     React.useEffect(() => {
         setIsServerSide(false)
     }, [])
+
+    const getSettingsQuery = useQuery({
+        queryKey: ['settings'],
+        queryFn: async () => {
+            const response = await fetch(`/api/settings`)
+            const data = await response.json()
+            return data as Settings
+        },
+    })
 
     const [projectName, setProjectName] = React.useState('')
     const [importProjectDialogOpen, setImportProjectDialogOpen] =
@@ -294,9 +308,24 @@ function ImportWorkflowUI() {
         [isFocused, isDragAccept, isDragReject]
     )
 
+    useEffect(() => {
+        // if settings are loaded and the ALLOW_OVERRIDABLE_PORTS_PER_PROJECT is set to false,
+        // then we should not allow the user to specify a fixed port
+        if (getSettingsQuery.data) {
+            if (!getSettingsQuery.data.ALLOW_OVERRIDABLE_PORTS_PER_PROJECT) {
+                setUseFixedPort(false)
+            }
+        }
+    }, [getSettingsQuery.data])
+
     if (isServerSide) {
         return
     }
+
+    if (getSettingsQuery.isLoading) {
+        return <div>Loading...</div>
+    }
+
     return (
         <>
             <Dialog
@@ -321,46 +350,62 @@ function ImportWorkflowUI() {
                             />
                         </div>
 
-                        <div className="grid grid-cols-3 items-center gap-4">
-                            <Label htmlFor="useFixedPort" className="text-sm">
-                                Use a static port
-                            </Label>
-                            <Checkbox
-                                id="useFixedPort"
-                                checked={useFixedPort}
-                                onCheckedChange={(checked) => {
-                                    // @ts-ignore
-                                    setUseFixedPort(checked)
-                                }}
-                            />
-                        </div>
-                        {useFixedPort && (
-                            <div className="grid grid-cols-4 items-center gap-4">
-                                <Label htmlFor="port" className="text-right">
-                                    Port
-                                </Label>
-                                <Input
-                                    id="port"
-                                    type="number"
-                                    required={useFixedPort}
-                                    placeholder=""
-                                    // className="col-span-3"
-                                    value={fixedPort}
-                                    onChange={(e) =>
-                                        setFixedPort(parseInt(e.target.value))
-                                    }
-                                />
-                            </div>
-                        )}
-                        {useFixedPort && (
-                            <div className="grid grid-cols-1 items-center gap-4">
-                                <p className="text-xs text-neutral-500">
-                                    If you're using Docker or running this on a
-                                    remote server, make sure that the port
-                                    number you chose satisfies any necessary
-                                    port-forwarding rules.
-                                </p>
-                            </div>
+                        {(getSettingsQuery.data
+                            ?.ALLOW_OVERRIDABLE_PORTS_PER_PROJECT === true) && (
+                            <>
+                                <div className="grid grid-cols-3 items-center gap-4">
+                                    <Label
+                                        htmlFor="useFixedPort"
+                                        className="text-sm"
+                                    >
+                                        Use a static port
+                                    </Label>
+                                    <Checkbox
+                                        id="useFixedPort"
+                                        checked={useFixedPort}
+                                        onCheckedChange={(checked) => {
+                                            // @ts-ignore
+                                            setUseFixedPort(checked)
+                                        }}
+                                    />
+                                </div>
+                                {useFixedPort && (
+                                    <div className="grid grid-cols-4 items-center gap-4">
+                                        <Label
+                                            htmlFor="port"
+                                            className="text-right"
+                                        >
+                                            Port
+                                        </Label>
+                                        <Input
+                                            id="port"
+                                            type="number"
+                                            required={useFixedPort}
+                                            min={getSettingsQuery.data.PROJECT_MIN_PORT}
+                                            max={getSettingsQuery.data.PROJECT_MAX_PORT}
+                                            placeholder=""
+                                            // className="col-span-3"
+                                            value={fixedPort}
+                                            onChange={(e) =>
+                                                setFixedPort(
+                                                    parseInt(e.target.value)
+                                                )
+                                            }
+                                        />
+                                    </div>
+                                )}
+                                {useFixedPort && (
+                                    <div className="grid grid-cols-1 items-center gap-4">
+                                        <p className="text-xs text-neutral-500">
+                                            If you're using Docker or running
+                                            this on a remote server, make sure
+                                            that the port number you chose
+                                            satisfies any necessary
+                                            port-forwarding rules.
+                                        </p>
+                                    </div>
+                                )}
+                            </>
                         )}
                     </div>
                     <DialogFooter>
