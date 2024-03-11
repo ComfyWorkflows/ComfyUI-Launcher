@@ -6,7 +6,7 @@ import time
 import torch
 from flask import Flask, jsonify, request, render_template
 from showinfm import show_in_file_manager
-from settings import CELERY_BROKER_DIR, CELERY_RESULTS_DIR, PROJECTS_DIR, MODELS_DIR, TEMPLATES_DIR
+from settings import ALLOW_OVERRIDABLE_PORTS_PER_PROJECT, CELERY_BROKER_DIR, CELERY_RESULTS_DIR, PROJECT_MAX_PORT, PROJECT_MIN_PORT, PROJECTS_DIR, MODELS_DIR, TEMPLATES_DIR
 import requests
 import os, psutil, sys
 from utils import (
@@ -65,6 +65,13 @@ def open_models_folder():
     show_in_file_manager(MODELS_DIR)
     return ""
 
+@app.route("/api/settings")
+def api_settings():
+    return jsonify({
+        "PROJECT_MIN_PORT": PROJECT_MIN_PORT,
+        "PROJECT_MAX_PORT": PROJECT_MAX_PORT,
+        "ALLOW_OVERRIDABLE_PORTS_PER_PROJECT": ALLOW_OVERRIDABLE_PORTS_PER_PROJECT,
+    })
 
 @app.route("/api/projects", methods=["GET"])
 def list_projects():

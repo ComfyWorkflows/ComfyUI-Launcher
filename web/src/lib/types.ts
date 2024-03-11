@@ -24,6 +24,12 @@ export type Config = {
     }
 }
 
+export type Settings = {
+    PROJECT_MIN_PORT: number,
+    PROJECT_MAX_PORT: number,
+    ALLOW_OVERRIDABLE_PORTS_PER_PROJECT: boolean,
+}
+
 export type ProjectState = {
     state:
         | 'install_comfyui'
