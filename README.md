@@ -1,21 +1,14 @@
----
-title: ComfyUI Launcher
-emoji: 🪄
-colorFrom: red
-colorTo: red
-sdk: docker
-pinned: false
-license: agpl-3.0
-short_description: Run any ComfyUI workflow w/ ZERO setup (BETA)
-app_port: 4000
----
-
 # ComfyUI Launcher (BETA)
 Run any ComfyUI workflow w/ **ZERO setup**.
 
 Need help? Join our Discord!
 
 [![](https://dcbadge.vercel.app/api/server/kXS43yTRNA)](https://discord.gg/kXS43yTRNA)
+
+Runs anywhere:
+- [Locally](#quick-start)
+- [RunPod](/cloud/RUNPOD.md)
+- [Huggingface Spaces](https://huggingface.co/spaces/multimodalart/comfyUI-laucher-v2)
 
 ## Features
 - Automatically installs custom nodes, missing model files, etc.
