@@ -114,7 +114,7 @@ docker run \
 Once the container is running, all you need to do is expose port 4000 to the outside world. This will allow you to access the Launcher and its workflow projects from a single port.
 
 Currently, `PROXY_MODE=true` only works with Docker, since NGINX is used within the container. 
-If you're running the Launcher manually, you'll need to set up a reverse proxy yourself.
+If you're running the Launcher manually, you'll need to set up a reverse proxy yourself (see the `nginx.conf` file for an example).
 
 ### Using an existing ComfyUI models folder
 When starting the ComfyUI Launcher, you can set the `MODELS_DIR` environment variable to the path of your existing ComfyUI models folder. This will allow you to use the models you've already downloaded. By default, they're stored in `./server/models`
