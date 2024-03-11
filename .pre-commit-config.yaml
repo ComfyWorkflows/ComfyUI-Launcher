@@ -12,7 +12,7 @@ repos:
         name: Build Web UI
         entry: bash -c 'cd web && npm run build'
         language: system
-        files: '^web/.*\.(js|jsx|ts|tsx|css|scss|sass|html|json)$'
+        files: '^web/.*\.(mp4|webp|js|jsx|ts|tsx|css|scss|sass|html|json)$'
         stages: [commit]
         pass_filenames: false
         verbose: true
