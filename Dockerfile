@@ -2,7 +2,7 @@ FROM python:3.10-slim
 
 WORKDIR /app
 
-RUN apt-get update && apt-get install -y nginx nodejs npm gcc g++ make && \
+RUN apt-get update && apt-get install -y nginx nodejs npm gcc g++ make wget && \
     rm -rf /var/lib/apt/lists/*
 
 RUN wget https://github.com/busyloop/envcat/releases/download/v1.1.0/envcat-1.1.0.linux-x86_64 \
