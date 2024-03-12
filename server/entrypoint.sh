@@ -11,6 +11,7 @@ celery_worker_pid=$!
 # if the environment variable PROXY_MODE is set to "true", start nginx
 if [ "$PROXY_MODE" = "true" ]; then
     echo "Starting Nginx reverse proxy (PROXY_MODE=true)..."
+    cat /etc/nginx/nginx.conf.template | envcat -f j2 '*' > /etc/nginx/nginx.conf
     nginx -g "daemon off;" &
 fi
 
