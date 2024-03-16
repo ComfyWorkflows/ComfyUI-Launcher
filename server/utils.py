@@ -241,6 +241,10 @@ def setup_custom_nodes_from_snapshot(project_folder_path, launcher_json):
         if os.path.exists(install_script_path):
             run_command_in_project_venv(project_folder_path, f"python {install_script_path}")
 
+        # for ComfyUI-CLIPSeg, we need to separately copy the clipseg.py file from ComfyUI-CLIPSeg/custom_nodes into `project_folder_path/comfyui/custom_nodes
+        if custom_node_name == "ComfyUI-CLIPSeg":
+            clipseg_custom_node_file_path = os.path.join(custom_node_path, "custom_nodes", "clipseg.py")
+            shutil.copy(clipseg_custom_node_file_path, os.path.join(project_folder_path, "comfyui", "custom_nodes", "clipseg.py"))
 
 def compute_sha256_checksum(file_path):
     buf_size = 1024
