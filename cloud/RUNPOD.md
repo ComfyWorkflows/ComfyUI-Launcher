@@ -18,4 +18,6 @@ When creating/importing workflow projects, ensure that you set **static ports**,
 ![](/assets/create_project_dialog_static_ports.png)
 ![](/assets/import_project_dialog_static_ports.png)
 
+# Managing model files & project files
 Your models + project files will be saved under `/workspace/comfyui_launcher_models` and `/workspace/comfyui_launcher_projects`, respectively.
+SSH into the Runpod instance to view & manage these folders.
