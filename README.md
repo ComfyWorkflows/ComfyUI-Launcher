@@ -71,6 +71,15 @@ Open http://localhost:4000 in your browser
 ### Option 2: Manual setup (macOS, Linux, and Windows)
 Works for **Windows (WSL - Windows Subsystem for Linux)**, **Linux**, & **macOS**
 
+Install python 3.11 later versions are not working
+need to pip install flask
+need to pip install celery
+On AMD install this
+https://download.pytorch.org/whl/torchrec-cpu/
+Or that
+https://download.pytorch.org/whl/pytorch-triton-rocm/
+run the run.sh file and wait to update/install/uninstall and do its magic.
+
 #### Installation (one-time setup)
 ```
 git clone https://github.com/ComfyWorkflows/comfyui-launcher
