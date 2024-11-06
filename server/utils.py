@@ -477,6 +477,13 @@ def get_project_port(id):
             return int(f.read().strip())
     return find_free_port(PROJECT_MIN_PORT, PROJECT_MAX_PORT)
 
+def get_project_args(id):
+    project_path = os.path.join(PROJECTS_DIR, id)
+    if os.path.exists(os.path.join(project_path, "args.txt")):
+        with open(os.path.join(project_path, "args.txt"), "r") as f:
+            return f.read().strip()
+    return None
+
 def is_port_in_use(port: int) -> bool:
     import socket
     with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:

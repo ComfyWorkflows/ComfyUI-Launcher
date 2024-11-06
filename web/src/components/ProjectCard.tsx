@@ -2,7 +2,9 @@
 
 import { Project, Settings } from '@/lib/types'
 import { Button } from './ui/button'
-import { useMutation, useQueryClient } from '@tanstack/react-query'
+import { Textarea  } from '@/components/ui/textarea'
+import { Input } from '@/components/ui/input'
+import { useMutation, useQueryClient, useQuery } from '@tanstack/react-query'
 import React, { useEffect } from 'react'
 import {
     AlertDialog,
@@ -14,7 +16,7 @@ import {
     AlertDialogHeader,
     AlertDialogTitle,
 } from './ui/alert-dialog'
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from './ui/dialog'
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from './ui/dialog'
 import { Loader2Icon } from 'lucide-react'
 import { DialogDescription } from '@radix-ui/react-dialog'
 
@@ -50,6 +52,12 @@ function ProjectCard({ item, settings }: ProjectCardProps) {
 
     const [deleteProjectDialogOpen, setDeleteProjectDialogOpen] =
         React.useState(false)
+    const [projectSettings, setProjectSettings] =
+        React.useState(false)
+    const [portNumber, setPortNumber] = 
+        React.useState<{ [key: string]: string }>({})
+    const [argumentsText, setArgumentsText] = 
+        React.useState<{ [key: string]: string }>({})
 
     const [projectOperation, setProjectOperation] = React.useState<
         'launch' | 'stop' | 'delete'
@@ -86,6 +94,39 @@ function ProjectCard({ item, settings }: ProjectCardProps) {
         },
         onSettled: () => {
             queryClient.invalidateQueries({ queryKey: ['projects'] })
+        },
+    })
+    const { refetch: refetchArguments } = useQuery({
+        queryKey: ['projectArguments', item.id],
+        queryFn: async () => {
+            const response = await fetch(`/api/projects/${item.id}/get-project-settings`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+            });
+            const data = await response.json();
+            setArgumentsText(prev => ({ ...prev, [item.id]: data.arguments }));
+            setPortNumber(prev => ({ ...prev, [item.id]: data.port }));
+            return data.arguments || "", data.port || "";
+        },
+        
+        enabled: projectSettings,
+    });           
+
+    const setProjectArguments = useMutation({
+        mutationFn: async () => {
+            const response = await fetch(`/api/projects/${item.id}/set-project-settings`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ arguments: argumentsText[item.id], port: portNumber[item.id] }),
+            })
+            const data = await response.json()
+            return data
+        },
+        onSettled: () => {
+            queryClient.invalidateQueries({ queryKey: ['projects'] })
+            refetchArguments()
         },
     })
 
@@ -179,6 +220,50 @@ function ProjectCard({ item, settings }: ProjectCardProps) {
                     </AlertDialogFooter>
                 </AlertDialogContent>
             </AlertDialog>
+            <Dialog open={projectSettings} onOpenChange={setProjectSettings}>
+                <DialogContent>
+                    <DialogHeader>
+                        <DialogTitle>Settings</DialogTitle>
+                    </DialogHeader>
+                    <div className="settings-section">
+                        <h3 className="mb-1">Port</h3>
+                        <Input
+                            name="port"
+                            placeholder="Enter Port Number"
+                            type="number"
+                            value={portNumber[item.id] || ""}
+                            onChange={(e) => setPortNumber(prev => ({
+                                ...prev,
+                                [item.id]: e.target.value
+                            }))}
+                        />
+                    </div>
+                    <div className="settings-section">
+                        <h3 className="mb-1">Launch Arguments</h3>
+                        <Textarea
+                            name="arguments"
+                            placeholder="Enter Launch Arguments"
+                            value={argumentsText[item.id] || ""}
+                            onChange={(e) => setArgumentsText(prev => ({
+                                ...prev,
+                                [item.id]: e.target.value
+                            }))}
+                        />
+                    </div>
+                    <DialogFooter>
+                        <Button variant="outline" onClick={() => setProjectSettings(false)}>Cancel</Button>
+                        <Button
+                            onClick={(e) => {
+                                e.preventDefault()
+                                setProjectSettings(false)
+                                setProjectArguments.mutate()
+                            }}
+                        >
+                            Save
+                        </Button>
+                    </DialogFooter>
+                </DialogContent>
+            </Dialog>
             <div
                 className={
                     'rounded-md  p-5 border ' +
@@ -209,7 +294,20 @@ function ProjectCard({ item, settings }: ProjectCardProps) {
                             >
                                 Launch
                             </Button>
-                        )}
+                        )}{
+                            item.state.state === 'ready' && (
+                                (
+                                    <Button 
+                                    onClick={(e) => {
+                                        e.preventDefault()
+                                        setProjectSettings(true)
+                                    }}
+                                    variant="outline">
+                                        Settings
+                                    </Button>
+                                )
+                            )
+                        }
                         {item.state.state === 'running' &&
                             !!item.state.port && (
                                 <Button variant="default" asChild>

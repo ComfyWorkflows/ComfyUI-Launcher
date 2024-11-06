@@ -16,6 +16,7 @@ from utils import (
     get_launcher_json_for_workflow_json,
     get_launcher_state,
     get_project_port,
+    get_project_args,
     is_launcher_json_format,
     is_port_in_use,
     run_command,
@@ -273,6 +274,7 @@ def start_project(id):
 
     # find a free port
     port = get_project_port(id)
+    args = get_project_args(id)
     assert port, "No free port found"
     assert not is_port_in_use(port), f"Port {port} is already in use"
 
@@ -285,6 +287,9 @@ def start_project(id):
     # start the project
     command = f"python main.py --port {port} --listen 0.0.0.0"
 
+    if args is not None:
+        command += " " + args
+
     # check if gpus are available, if they aren't, use the cpu
     mps_available = hasattr(torch.backends, "mps") and torch.backends.mps.is_available()
     if not torch.cuda.is_available() and not mps_available:
@@ -294,7 +299,7 @@ def start_project(id):
     if os.name == "nt":
         command = f"start \"\" cmd /c \"{command}\""
     
-    print(f"USING COMMAND: {command}. PORT: {port}")
+    print(f"USING COMMAND: {command}. PORT: {port}. ARGS: {args}")
 
     pid = run_command_in_project_comfyui_venv(
         project_path, command, in_bg=True
@@ -339,6 +344,44 @@ def stop_project(id):
     set_launcher_state_data(project_path, {"state": "ready", "status_message" : "Ready", "port": None, "pid": None})
     return jsonify({"success": True})
 
+@app.route("/api/projects/<id>/set-project-settings", methods=["POST"])
+def set_project_settings(id):
+    project_path = os.path.join(PROJECTS_DIR, id)
+    args_file_path = os.path.join(project_path, "args.txt")
+    port_file_path = os.path.join(project_path, "port.txt")
+
+    if not os.path.exists(project_path):
+        return jsonify({"error": f"Project with id {id} does not exist"}), 404
+
+    data = request.get_json()
+    arguments = data.get("arguments", "")
+    port = data.get("port", "")
+
+    try:
+        if arguments:
+            with open(args_file_path, "w") as args_file:
+                args_file.write(arguments)
+        else:
+            os.remove(args_file_path)
+    except FileNotFoundError:
+        pass
+
+    try:
+        if port and int(port) > 0:
+            with open(port_file_path, "w") as port_file:
+                port_file.write(str(port))
+        else:
+            os.remove(port_file_path)
+    except FileNotFoundError:
+        pass
+    
+    return jsonify({"success": True})
+
+@app.route("/api/projects/<id>/get-project-settings", methods=["POST"])
+def get_project_settings(id):
+    args = get_project_args(id)
+    port = get_project_port(id)
+    return jsonify({"arguments": args, "port": port})
 
 @app.route("/api/projects/<id>/delete", methods=["POST"])
 def delete_project(id):
